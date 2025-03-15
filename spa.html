@@ -1,0 +1,2812 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расписание СПА</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        h1, h2, h3 {
+            color: #333;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border: 1px solid #ccc;
+            border-bottom: none;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        
+        .tab.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+        }
+        
+        .staff-category {
+            margin-bottom: 30px;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .data-table th, .data-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        
+        .data-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        .data-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .data-table tr:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .cell-x {
+            background-color: #ffecec;
+        }
+        
+        .cell-xr {
+            background-color: #fff2cc;
+        }
+        
+        .cell-sick {
+            background-color: #ead1dc;
+        }
+        
+        .cell-hol {
+            background-color: #d9ead3;
+        }
+        
+        .cell-tr {
+            background-color: #d0e0e3;
+        }
+        
+        .loc-east {
+            background-color: #93C47D;
+        }
+        
+        .loc-rlh {
+            background-color: #4A86E8;
+        }
+        
+        .loc-bankside {
+            background-color: #B7B7B7;
+        }
+        
+        .loc-sick {
+            background-color: #FF0000;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .legend {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .legend-item {
+            display: inline-block;
+            margin-right: 20px;
+        }
+        
+        .legend-color {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            vertical-align: middle;
+            border: 1px solid #ccc;
+        }
+        
+        .file-input {
+            margin-bottom: 20px;
+        }
+        
+        .loading {
+            display: none;
+            margin: 20px 0;
+            font-style: italic;
+            color: #666;
+        }
+        
+        .analytics-section {
+            margin-bottom: 30px;
+        }
+        
+        #staffHoursTable th, #locationHoursTable th, #positionHoursTable th {
+            background-color: #e6e6e6;
+        }
+        
+        #staffHoursTable td, #locationHoursTable td, #positionHoursTable td {
+            text-align: center;
+        }
+        
+        #staffHoursTable td:first-child, #locationHoursTable td:first-child, #positionHoursTable td:first-child {
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .spa-location {
+            display: none;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .spa-location.active {
+            display: block;
+        }
+        
+        .print-btn, .file-upload {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 20px;
+            margin-right: 10px;
+        }
+        
+        .week-selector {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .week-btn {
+            padding: 10px 20px;
+            margin: 0 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .week-btn.active {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .position-label {
+            font-size: 0.8em;
+            color: #777;
+            display: block;
+        }
+        
+        .print-btn:hover, .file-upload:hover {
+            background-color: #45a049;
+        }
+        
+        .lara-juanita-btn {
+            padding: 10px 20px;
+            background-color: #e91e63;
+            color: white;
+            border: 1px solid #c2185b;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            display: inline-block;
+        }
+        
+        .lara-juanita-btn:hover {
+            background-color: #c2185b;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .file-input {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            display: none;
+        }
+        
+        .status.success {
+            background-color: #d9ead3;
+            color: #2d6a4f;
+            display: block;
+        }
+        
+        .status.error {
+            background-color: #ffecec;
+            color: #b71c1c;
+            display: block;
+        }
+        
+        @media print {
+            .tabs, .print-btn, .week-selector, .controls, .status, .file-upload {
+                display: none;
+            }
+            .spa-location {
+                display: block;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                margin-bottom: 20px;
+                box-shadow: none;
+            }
+            body {
+                background-color: #fff;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SPA Schedule</h1>
+        
+        <div id="statusMessage" class="status"></div>
+        <div id="loading" class="loading">Loading data</div>
+        
+        <div class="controls">
+            <label for="fileInput" class="file-upload">Upload Excel File</label>
+            <input type="file" id="fileInput" class="file-input" accept=".xlsx, .xls">
+            <button class="print-btn" onclick="window.print()">Print Schedule</button>
+            <button class="lara-juanita-btn" onclick="loadDefaultFile()">Button for Lara and Juanita</button>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="openLocation(event, 'east')">East SPA</div>
+            <div class="tab" onclick="openLocation(event, 'rlh')">RLH SPA</div>
+            <div class="tab" onclick="openLocation(event, 'bankside')">Bankside SPA</div>
+            <div class="tab" onclick="openLocation(event, 'guests')">Guest Staff</div>
+            <div class="tab" onclick="openLocation(event, 'analytics')">Analytics</div>
+        </div>
+        
+        <!-- East SPA Tab -->
+        <div id="east-tab" class="tab-content">
+            <h2>East SPA</h2>
+            
+            <!-- East Administrators -->
+            <div class="staff-category">
+                <h3>Administrators</h3>
+                <table id="eastAdmins" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Staff Member</th>
+                            <!-- Days will be inserted here -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- East Spa Attendance -->
+            <div class="staff-category">
+                <h3>Spa Attendance</h3>
+                <table id="eastAttendance" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Staff Member</th>
+                            <!-- Days will be inserted here -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- East Therapists -->
+            <div class="staff-category">
+                <h3>Therapists</h3>
+                <table id="eastTherapists" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Staff Member</th>
+                            <!-- Days will be inserted here -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- RLH SPA Tab -->
+        <div id="rlh-tab" class="tab-content">
+            <h2>RLH SPA</h2>
+            
+            <!-- RLH Administrators -->
+            <div class="staff-category">
+                <h3>Administrators</h3>
+                <table id="rlhAdmins" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Staff Member</th>
+                            <!-- Days will be inserted here -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- RLH Spa Attendance -->
+            <div class="staff-category">
+                <h3>Spa Attendance</h3>
+                <table id="rlhAttendance" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Staff Member</th>
+                            <!-- Days will be inserted here -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- RLH Therapists -->
+            <div class="staff-category">
+                <h3>Therapists</h3>
+                <table id="rlhTherapists" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Staff Member</th>
+                            <!-- Days will be inserted here -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Bankside SPA Tab -->
+        <div id="bankside-tab" class="tab-content">
+            <h2>Bankside SPA</h2>
+            
+            <!-- Bankside Administrators -->
+            <div class="staff-category">
+                <h3>Administrators</h3>
+                <table id="banksideAdmins" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Staff Member</th>
+                            <!-- Days will be inserted here -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Bankside Spa Attendance -->
+            <div class="staff-category">
+                <h3>Spa Attendance</h3>
+                <table id="banksideAttendance" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Staff Member</th>
+                            <!-- Days will be inserted here -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Guest Staff Tab -->
+        <div id="guests-tab" class="tab-content">
+            <h2>Guest Staff</h2>
+            <table id="allGuestStaff" class="data-table">
+                <thead>
+                    <tr>
+                        <th>Staff Member</th>
+                        <th>Home Location</th>
+                        <th>Position</th>
+                        <th>Working At</th>
+                        <!-- Days will be inserted here -->
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be inserted here -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Analytics Tab -->
+        <div id="analytics-tab" class="tab-content">
+            <h2>Analytics</h2>
+            
+            <!-- Staff Hours Table -->
+            <div class="analytics-section">
+                <h3>Staff Hours</h3>
+                <table id="staffHoursTable" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Staff Member</th>
+                            <th>Position</th>
+                            <th>Home Location</th>
+                            <th>Total Hours</th>
+                            <th>Home Hours</th>
+                            <th>Guest Hours</th>
+                            <th>East Hours</th>
+                            <th>RLH Hours</th>
+                            <th>Bankside Hours</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Location Hours Table -->
+            <div class="analytics-section">
+                <h3>Location Hours</h3>
+                <table id="locationHoursTable" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Location</th>
+                            <th>Total Hours</th>
+                            <th>Home Staff Hours</th>
+                            <th>Guest Staff Hours</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Position Hours Table -->
+            <div class="analytics-section">
+                <h3>Position Hours</h3>
+                <table id="positionHoursTable" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Position</th>
+                            <th>Total Hours</th>
+                            <th>East Hours</th>
+                            <th>RLH Hours</th>
+                            <th>Bankside Hours</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <h4>Legend:</h4>
+            <div class="legend-section">
+                <span class="legend-item">X - day off</span>
+                <span class="legend-item">XR - day off request</span>
+                <span class="legend-item">HOL - holiday</span>
+                <span class="legend-item">TR - training</span>
+                <span class="legend-item">sick - illness 🤒</span>
+            </div>
+            
+            <h4>Location color codes:</h4>
+            <div class="legend-section">
+                <span class="legend-item"><span style="display: inline-block; width: 20px; height: 20px; background-color: #93C47D; vertical-align: middle; margin-right: 5px;"></span> EAST SPA</span>
+                <span class="legend-item"><span style="display: inline-block; width: 20px; height: 20px; background-color: #4A86E8; vertical-align: middle; margin-right: 5px;"></span> RLH SPA</span>
+                <span class="legend-item"><span style="display: inline-block; width: 20px; height: 20px; background-color: #B7B7B7; vertical-align: middle; margin-right: 5px;"></span> Bankside SPA</span>
+            </div>
+            
+            <h4>Staff types:</h4>
+            <div class="legend-section">
+                <span class="legend-item"><span style="display: inline-block; width: 20px; height: 20px; background-color: #ffefd5; vertical-align: middle; margin-right: 5px;"></span> Senior Supervisor</span>
+                <span class="legend-item"><span style="display: inline-block; width: 20px; height: 20px; background-color: #e6f7ff; vertical-align: middle; margin-right: 5px;"></span> Senior Receptionist</span>
+            </div>
+            
+            <h4>Guest staff information:</h4>
+            <div class="legend-section">
+                <p>Guest staff are personnel temporarily working at a location other than their home location. 
+                In the "Guest Staff" table, you can see who is working at a different location and on which days. 
+                The cell color indicates which location the staff member is working at on that day.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Добавляем обработчик события загрузки страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            // Добавляем обработчик события для input file
+            document.getElementById('fileInput').addEventListener('change', function(e) {
+                if (this.files.length > 0) {
+                    handleExcelFile(this.files[0]);
+                }
+            });
+        });
+        
+        // Configuration for staff
+        const staffConfig = {
+            seniorSupervisors: ["Larysa", "Umarin"],
+            seniorReceptionists: ["Tanvi"],
+            eastReceptionists: ["Larysa", "Ioana", "Vadym", "Fatimah"],
+            eastAttendance: ["Alex", "Nandini", "Sakshi", "Dhruva", "Harshie", "Rajvee", "Apoorva"],
+            eastTherapists: ["Agata", "Carmilla", "Andrea", "Simone", "Isabella", "Prem", "Siobhan", "Chris", "Sophie", "Iskra"],
+            rlhReceptionists: ["Tanvi"],
+            rlhAttendance: ["Veska", "Maksim", "Malcan", "Dipali", "Arpit", "Rashmi"],
+            rlhTherapists: ["Umarin", "Shiv", "Bea", "Christine", "Guido", "Sara", "Mihaela", "Ashley", "Aldona"],
+            banksideReceptionists: ["Aditya", "Naveen"],
+            banksideAttendance: ["Elisa", "Fatim*"]
+        };
+        
+        // Location colors in RGB format
+        const locationColors = {
+            "East": "93c47d", // Green
+            "RLH": "4a86e8",  // Blue
+            "Bankside": "b7b7b7" // Gray
+        };
+        
+        // Сопоставление для приглашенных сотрудников
+        const guestStaffHome = {
+            "Larysa": "East",
+            "Umarin": "RLH",
+            "Shiv": "RLH",
+            "Ashley": "RLH",
+            "Guido": "RLH"
+        };
+        
+        // Функция для определения цвета ячейки на основе значения
+        function getCellClass(value) {
+            if (!value) return "";
+            
+            value = String(value).trim();
+            
+            if (value === "X") return "cell-x";
+            if (value === "XR") return "cell-xr";
+            if (value === "sick") return "cell-sick";
+            if (value === "HOL") return "cell-hol";
+            if (value === "TR") return "cell-tr";
+            
+            // Проверка на цвет локации
+            if (value.startsWith("east-")) return "loc-east";
+            if (value.startsWith("rlh-")) return "loc-rlh";
+            if (value.startsWith("bankside-")) return "loc-bankside";
+            
+            return "";
+        }
+        
+        // Function to open location tab
+        function openLocation(evt, locationName) {
+            // Hide all tab content
+            const tabContent = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < tabContent.length; i++) {
+                tabContent[i].style.display = "none";
+            }
+            
+            // Remove active class from all tabs
+            const tabs = document.getElementsByClassName("tab");
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].className = tabs[i].className.replace(" active", "");
+            }
+            
+            // Show the selected tab content and add active class to the button
+            if (locationName === 'east') {
+                document.getElementById("east-tab").style.display = "block";
+            } else if (locationName === 'rlh') {
+                document.getElementById("rlh-tab").style.display = "block";
+            } else if (locationName === 'bankside') {
+                document.getElementById("bankside-tab").style.display = "block";
+            } else if (locationName === 'guests') {
+                document.getElementById("guests-tab").style.display = "block";
+            } else if (locationName === 'analytics') {
+                document.getElementById("analytics-tab").style.display = "block";
+            }
+            
+            evt.currentTarget.className += " active";
+        }
+        
+        // Функция для обновления заголовков таблицы
+        function updateTableHeaders(tableId, headings, includeLocation = false) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+            
+            const headerRow = table.querySelector("thead tr");
+            if (!headerRow) return;
+            
+            // Проверяем, сколько столбцов оставить (в зависимости от типа таблицы)
+            const isGuestTable = tableId === "allGuestStaff";
+            const keepColumns = isGuestTable ? 4 : (includeLocation ? 2 : 1);
+            
+            // Удаляем все колонки, кроме базовых
+            while (headerRow.children.length > keepColumns) {
+                headerRow.removeChild(headerRow.lastChild);
+            }
+            
+            // Добавляем новые заголовки для дней недели
+            for (const heading of headings) {
+                const th = document.createElement("th");
+                th.textContent = heading;
+                headerRow.appendChild(th);
+            }
+        }
+        
+        // Функция для очистки данных в таблице
+        function clearTableData(tableId) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+            
+            const tbody = table.querySelector("tbody");
+            if (!tbody) return;
+            
+            tbody.innerHTML = "";
+        }
+        
+        // Функция для проверки, является ли имя именем сотрудника из списка
+        function isStaffMember(name, staffList) {
+            // Иногда имена могут быть с небольшими отличиями, проверяем частичное совпадение
+            for (const staffName of staffList) {
+                if (name.includes(staffName) || staffName.includes(name)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        // Функция для загрузки файла spa.xlsx по умолчанию (для Лары и Хуаниты)
+        function loadDefaultFile() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('statusMessage').className = 'status';
+                document.getElementById('statusMessage').textContent = 'Loading default file...';
+                
+                console.log("Loading default spa.xlsx file...");
+                
+                // Создаем объект XMLHttpRequest
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', 'spa.xlsx', true);
+                xhr.responseType = 'arraybuffer';
+                
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        const data = new Uint8Array(xhr.response);
+                        const workbook = XLSX.read(data, { type: 'array', cellStyles: true });
+                        
+                        // Get the first sheet
+                        const firstSheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[firstSheetName];
+                        
+                        console.log("Default sheet loaded:", firstSheetName);
+                        
+                        // Extract cell colors
+                        const cellColors = extractCellColors(worksheet);
+                        
+                        // Save colors in a global variable for access from other functions
+                        window.excelCellColors = cellColors;
+                        
+                        // Convert to JSON
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: null, cellStyles: true });
+                        
+                        console.log("Default data converted to JSON, rows:", jsonData.length);
+                        
+                        // Analyze data structure
+                        displayData(jsonData);
+                        
+                        document.getElementById('statusMessage').className = 'status success';
+                        document.getElementById('statusMessage').textContent = 'Default data successfully loaded!';
+                    } else {
+                        console.error('Error loading file:', xhr.statusText);
+                        document.getElementById('statusMessage').className = 'status error';
+                        document.getElementById('statusMessage').textContent = 'Error loading file: ' + xhr.statusText;
+                        
+                        // Если не удалось загрузить файл, активируем стандартный диалог выбора файла
+                        document.getElementById('fileInput').click();
+                    }
+                    document.getElementById('loading').style.display = 'none';
+                };
+                
+                xhr.onerror = function() {
+                    console.error('Network error while loading file');
+                    document.getElementById('statusMessage').className = 'status error';
+                    document.getElementById('statusMessage').textContent = 'Network error while loading file';
+                    document.getElementById('loading').style.display = 'none';
+                    
+                    // Если не удалось загрузить файл, активируем стандартный диалог выбора файла
+                    document.getElementById('fileInput').click();
+                };
+                
+                xhr.send();
+                
+            } catch (error) {
+                console.error('Error processing default file:', error);
+                document.getElementById('statusMessage').className = 'status error';
+                document.getElementById('statusMessage').textContent = 'Error: ' + error.message;
+                document.getElementById('loading').style.display = 'none';
+                
+                // Если произошла ошибка, активируем стандартный диалог выбора файла
+                document.getElementById('fileInput').click();
+            }
+        }
+        
+        // Функция для обработки Excel-файла
+        async function handleExcelFile(file) {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('statusMessage').className = 'status';
+                document.getElementById('statusMessage').textContent = '';
+                
+                console.log("Starting Excel file processing...");
+                
+                const arrayBuffer = await file.arrayBuffer();
+                const workbook = XLSX.read(arrayBuffer, { type: 'array', cellStyles: true });
+                
+                // Get the first sheet
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                
+                console.log("Sheet loaded:", firstSheetName);
+                
+                // Extract cell colors
+                const cellColors = extractCellColors(worksheet);
+                
+                // Save colors in a global variable for access from other functions
+                window.excelCellColors = cellColors;
+                
+                // Convert to JSON
+                const data = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: null, cellStyles: true });
+                
+                console.log("Data converted to JSON, rows:", data.length);
+                
+                // Analyze data structure
+                displayData(data);
+                
+                document.getElementById('statusMessage').className = 'status success';
+                document.getElementById('statusMessage').textContent = 'Data successfully loaded!';
+            } catch (error) {
+                console.error('Error processing file:', error);
+                document.getElementById('statusMessage').className = 'status error';
+                document.getElementById('statusMessage').textContent = 'Error loading file: ' + error.message;
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+        
+        // Function to display data
+        function displayData(data) {
+            // Save data for later reference
+            window.lastLoadedData = data;
+            
+            // Find row with days of the week and dates
+            const headerInfo = findHeaderInfo(data);
+            
+            if (!headerInfo || !headerInfo.dayColumns || headerInfo.dayColumns.length === 0) {
+                throw new Error("Could not find week information");
+            }
+            
+            // Form headings
+            const headings = headerInfo.dayColumns.map((col, index) => {
+                const day = data[headerInfo.dayRowIndex][col];
+                let date = '';
+                
+                if (headerInfo.dateRowIndex >= 0 && headerInfo.dateRowIndex < data.length) {
+                    date = data[headerInfo.dateRowIndex][col];
+                }
+                
+                if (date) {
+                    return `${day}, ${date}`;
+                } else {
+                    return day;
+                }
+            });
+            
+            // Update headings in all tables
+            updateTableHeaders("eastAdmins", headings);
+            updateTableHeaders("eastAttendance", headings);
+            updateTableHeaders("eastTherapists", headings);
+            updateTableHeaders("rlhAdmins", headings);
+            updateTableHeaders("rlhAttendance", headings);
+            updateTableHeaders("rlhTherapists", headings);
+            updateTableHeaders("banksideAdmins", headings);
+            updateTableHeaders("banksideAttendance", headings);
+            updateTableHeaders("allGuestStaff", headings, true);
+            
+            // Find locations
+            const sections = findSections(data);
+            
+            // Clear all tables
+            clearAllTables();
+            
+            // Create arrays to store all staff by category
+            const allStaffByCategory = {
+                eastAdmins: [],
+                eastAttendance: [],
+                eastTherapists: [],
+                rlhAdmins: [],
+                rlhAttendance: [],
+                rlhTherapists: [],
+                banksideAdmins: [],
+                banksideAttendance: []
+            };
+            
+            // Сначала ищем всех сотрудников в данных
+            for (let i = 0; i < data.length; i++) {
+                if (!data[i] || !data[i][0] || typeof data[i][0] !== 'string') continue;
+                
+                const rowStaffName = data[i][0].trim();
+                
+                // Пропускаем заголовки и пустые строки
+                if (rowStaffName === "" || 
+                    rowStaffName.toUpperCase().includes("RECEPTION") || 
+                    rowStaffName.toUpperCase().includes("ATTENDANCE") || 
+                    rowStaffName.toUpperCase().includes("THERAPISTS") ||
+                    rowStaffName.includes("(")) {
+                    continue;
+                }
+                
+                // Проверяем, к какой категории относится сотрудник
+                let staffCategory = null;
+                let currentSection = "";
+                
+                // Определяем текущую секцию
+                for (let k = i; k >= 0; k--) {
+                    if (!data[k] || !data[k][0] || typeof data[k][0] !== 'string') continue;
+                    
+                    const sectionMarker = data[k][0].trim().toUpperCase();
+                    if (sectionMarker.includes("EAST RECEPTION")) {
+                        currentSection = "eastAdmins";
+                        break;
+                    } else if (sectionMarker.includes("EAST ATTENDANCE")) {
+                        currentSection = "eastAttendance";
+                        break;
+                    } else if (sectionMarker.includes("EAST THERAPISTS") || sectionMarker.includes("EAST THER")) {
+                        currentSection = "eastTherapists";
+                        break;
+                    } else if (sectionMarker.includes("RLH RECEPTION")) {
+                        currentSection = "rlhAdmins";
+                        break;
+                    } else if (sectionMarker.includes("RLH ATTENDANCE") || sectionMarker.includes("RLH ATTEND")) {
+                        currentSection = "rlhAttendance";
+                        break;
+                    } else if (sectionMarker.includes("RLH THERAPISTS") || sectionMarker.includes("RLH THERAP") || sectionMarker.includes("RLH THER")) {
+                        currentSection = "rlhTherapists";
+                        break;
+                    } else if (sectionMarker.includes("BANKSIDE RECEPTION") || sectionMarker.includes("BANKSIDE R")) {
+                        currentSection = "banksideAdmins";
+                        break;
+                    } else if (sectionMarker.includes("BANKSIDE ATTENDANCE") || (sectionMarker.includes("BANKSIDE") && !sectionMarker.includes("RECEPTION"))) {
+                        currentSection = "banksideAttendance";
+                        break;
+                    }
+                }
+                
+                // Если не удалось определить секцию, пропускаем
+                if (!currentSection) continue;
+                
+                // Проверяем, входит ли сотрудник в соответствующий список
+                let isInStaffList = false;
+                let staffList = [];
+                
+                switch (currentSection) {
+                    case "eastAdmins":
+                        staffList = staffConfig.eastReceptionists;
+                        break;
+                    case "eastAttendance":
+                        staffList = staffConfig.eastAttendance;
+                        break;
+                    case "eastTherapists":
+                        staffList = staffConfig.eastTherapists;
+                        break;
+                    case "rlhAdmins":
+                        staffList = staffConfig.rlhReceptionists;
+                        break;
+                    case "rlhAttendance":
+                        staffList = staffConfig.rlhAttendance;
+                        break;
+                    case "rlhTherapists":
+                        staffList = staffConfig.rlhTherapists;
+                        break;
+                    case "banksideAdmins":
+                        staffList = staffConfig.banksideReceptionists;
+                        break;
+                    case "banksideAttendance":
+                        staffList = staffConfig.banksideAttendance;
+                        break;
+                }
+                
+                for (const name of staffList) {
+                    if (rowStaffName.includes(name) || name.includes(rowStaffName)) {
+                        isInStaffList = true;
+                        break;
+                    }
+                }
+                
+                // Если сотрудник входит в список или это специальный случай
+                if (isInStaffList) {
+                    // Собираем расписание для всех дней
+                    const schedule = [];
+                    
+                    for (const col of headerInfo.dayColumns) {
+                        if (col < data[i].length) {
+                            schedule.push(data[i][col] !== null ? String(data[i][col]) : "");
+                        } else {
+                            schedule.push("");
+                        }
+                    }
+                    
+                    // Добавляем сотрудника в соответствующую категорию
+                    allStaffByCategory[currentSection].push({
+                        name: rowStaffName,
+                        schedule: schedule
+                    });
+                }
+            }
+            
+            // Дополнительно проверяем, есть ли в данных сотрудники из конфигурации, которые не были найдены
+            // Это особенно важно для Tanvi и терапевтов RLH
+            
+            // Проверяем Tanvi
+            if (allStaffByCategory.rlhAdmins.findIndex(staff => staff.name.includes("Tanvi")) === -1) {
+                // Ищем Tanvi в данных
+                for (let i = 0; i < data.length; i++) {
+                    if (!data[i] || !data[i][0] || typeof data[i][0] !== 'string') continue;
+                    
+                    const rowStaffName = data[i][0].trim();
+                    
+                    if (rowStaffName.includes("Tanvi")) {
+                        // Собираем расписание для всех дней
+                        const schedule = [];
+                        
+                        for (const col of headerInfo.dayColumns) {
+                            if (col < data[i].length) {
+                                schedule.push(data[i][col] !== null ? String(data[i][col]) : "");
+                            } else {
+                                schedule.push("");
+                            }
+                        }
+                        
+                        // Добавляем Tanvi в RLH администраторы
+                        allStaffByCategory.rlhAdmins.push({
+                            name: "Tanvi",
+                            schedule: schedule
+                        });
+                        
+                        break;
+                    }
+                }
+            }
+            
+            // Проверяем терапевтов RLH
+            for (const therapistName of staffConfig.rlhTherapists) {
+                if (allStaffByCategory.rlhTherapists.findIndex(staff => staff.name.includes(therapistName)) === -1) {
+                    // Ищем терапевта в данных
+                    for (let i = 0; i < data.length; i++) {
+                        if (!data[i] || !data[i][0] || typeof data[i][0] !== 'string') continue;
+                        
+                        const rowStaffName = data[i][0].trim();
+                        
+                        if (rowStaffName.includes(therapistName) || therapistName.includes(rowStaffName)) {
+                            // Собираем расписание для всех дней
+                            const schedule = [];
+                            
+                            for (const col of headerInfo.dayColumns) {
+                                if (col < data[i].length) {
+                                    schedule.push(data[i][col] !== null ? String(data[i][col]) : "");
+                                } else {
+                                    schedule.push("");
+                                }
+                            }
+                            
+                            // Добавляем терапевта в RLH терапевты
+                            allStaffByCategory.rlhTherapists.push({
+                                name: therapistName,
+                                schedule: schedule
+                            });
+                            
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // Заполняем таблицы данными
+            for (const category in allStaffByCategory) {
+                if (allStaffByCategory[category].length > 0) {
+                    populateStaffTable(category, allStaffByCategory[category]);
+                }
+            }
+            
+            // Находим приглашенных сотрудников
+            const guestStaff = findAllGuestStaff(data, headerInfo);
+            populateAllGuestStaffTable("allGuestStaff", guestStaff, headings);
+            
+            // Calculate and display analytics
+            calculateAndDisplayAnalytics(allStaffByCategory, guestStaff, headerInfo);
+        }
+        
+        // Функция для нахождения информации о днях недели и датах
+        function findHeaderInfo(data) {
+            // Ищем строку с днями недели
+            let dayRowIndex = -1;
+            let dayColumns = [];
+            
+            // Дни недели на английском и русском
+            const dayNames = [
+                "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
+                "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun",
+                "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье", 
+                "Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"
+            ];
+            
+            // Ищем строку с днями недели
+            for (let i = 0; i < Math.min(10, data.length); i++) {
+                if (!data[i]) continue;
+                
+                const foundDays = [];
+                for (let j = 0; j < data[i].length; j++) {
+                    const cell = data[i][j];
+                    if (cell && typeof cell === 'string' && dayNames.includes(cell.trim())) {
+                        foundDays.push(j);
+                    }
+                }
+                
+                if (foundDays.length >= 5) { // Нашли минимум 5 дней недели
+                    dayRowIndex = i;
+                    dayColumns = foundDays;
+                    break;
+                }
+            }
+            
+            if (dayRowIndex === -1) {
+                return null;
+            }
+            
+            // Ищем строку с датами (должна быть после дней недели)
+            let dateRowIndex = -1;
+            
+            // Проверяем следующую строку после дней недели
+            if (dayRowIndex + 1 < data.length) {
+                const nextRow = data[dayRowIndex + 1];
+                if (nextRow) {
+                    // Проверяем, содержит ли строка числа
+                    let hasNumbers = false;
+                    for (const col of dayColumns) {
+                        if (col < nextRow.length && nextRow[col] !== null && 
+                            (typeof nextRow[col] === 'number' || 
+                             (typeof nextRow[col] === 'string' && !isNaN(parseInt(nextRow[col]))))) {
+                            hasNumbers = true;
+                            break;
+                        }
+                    }
+                    
+                    if (hasNumbers) {
+                        dateRowIndex = dayRowIndex + 1;
+                    }
+                }
+            }
+            
+            return {
+                dayRowIndex,
+                dayColumns,
+                dateRowIndex
+            };
+        }
+        
+        // Функция для поиска секций локаций
+        function findSections(data) {
+            const sections = {
+                eastReception: -1,
+                eastAttend: -1,
+                eastTher: -1,
+                rlhReception: -1,
+                rlhAttend: -1,
+                rlhTher: -1,
+                banksideReception: -1,
+                bankside: -1
+            };
+            
+            for (let i = 0; i < data.length; i++) {
+                if (!data[i] || !data[i][0] || typeof data[i][0] !== 'string') continue;
+                
+                const marker = data[i][0].trim().toUpperCase();
+                
+                if (marker.includes("EAST RECEPTION")) {
+                    sections.eastReception = i;
+                } else if (marker.includes("EAST ATTENDANCE")) {
+                    sections.eastAttend = i;
+                } else if (marker.includes("EAST THERAPISTS") || marker.includes("EAST THER")) {
+                    sections.eastTher = i;
+                } else if (marker.includes("RLH RECEPTION")) {
+                    sections.rlhReception = i;
+                } else if (marker.includes("RLH ATTENDANCE") || marker.includes("RLH ATTEND")) {
+                    sections.rlhAttend = i;
+                } else if (marker.includes("RLH THERAPISTS") || marker.includes("RLH THERAP") || marker.includes("RLH THER")) {
+                    sections.rlhTher = i;
+                } else if (marker.includes("BANKSIDE RECEPTION") || marker.includes("BANKSIDE R")) {
+                    sections.banksideReception = i;
+                } else if (marker.includes("BANKSIDE ATTENDANCE") || (marker.includes("BANKSIDE") && !marker.includes("RECEPTION"))) {
+                    sections.bankside = i;
+                }
+            }
+            
+            return sections;
+        }
+        
+        // Функция для извлечения данных сотрудников
+        function extractStaffData(data, sectionIndex, staffList, dayColumns) {
+            const result = [];
+            
+            // Ищем сотрудников в пределах 30 строк от начала секции
+            for (let i = sectionIndex + 1; i < Math.min(sectionIndex + 30, data.length); i++) {
+                if (!data[i] || !data[i][0] || typeof data[i][0] !== 'string') continue;
+                
+                const staffName = data[i][0].trim();
+                
+                // Если нашли следующую секцию, прекращаем поиск
+                if (staffName.toUpperCase().includes("RECEPTION") || 
+                    staffName.toUpperCase().includes("ATTENDANCE") || 
+                    staffName.toUpperCase().includes("THERAPISTS") || 
+                    staffName.includes("(")) {
+                    break;
+                }
+                
+                // Проверяем, входит ли сотрудник в целевой список
+                let isInStaffList = false;
+                for (const name of staffList) {
+                    if (staffName.includes(name) || name.includes(staffName)) {
+                        isInStaffList = true;
+                        break;
+                    }
+                }
+                
+                if (isInStaffList || staffName.includes("(")) {
+                    // Собираем расписание для всех дней
+                    const schedule = [];
+                    
+                    for (const col of dayColumns) {
+                        if (col < data[i].length) {
+                            schedule.push(data[i][col] !== null ? String(data[i][col]) : "");
+                        } else {
+                            schedule.push("");
+                        }
+                    }
+                    
+                    result.push({
+                        name: staffName,
+                        schedule: schedule
+                    });
+                }
+            }
+            
+            return result;
+        }
+        
+        // Функция для определения штатной привязки сотрудника
+        function getStaffHomeLocation(staffName) {
+            // Определяем, в какой локации сотрудник обычно работает
+            if (staffConfig.eastReceptionists.includes(staffName) || 
+                staffConfig.eastAttendance.includes(staffName) || 
+                staffConfig.eastTherapists.includes(staffName)) {
+                return "East";
+            } else if (staffConfig.rlhReceptionists.includes(staffName) || 
+                       staffConfig.rlhAttendance.includes(staffName) || 
+                       staffConfig.rlhTherapists.includes(staffName)) {
+                return "RLH";
+            } else if (staffConfig.banksideReceptionists.includes(staffName) || 
+                       staffConfig.banksideAttendance.includes(staffName)) {
+                return "Bankside";
+            }
+            
+            // Если не найдено в известных списках
+            return "";
+        }
+        
+        // Функция для определения должности сотрудника
+        function getStaffPosition(staffName) {
+            if (staffConfig.seniorSupervisors.includes(staffName)) {
+                return "Senior Supervisor";
+            } else if (staffConfig.seniorReceptionists.includes(staffName)) {
+                return "Senior Receptionist";
+            } else if (staffConfig.eastReceptionists.includes(staffName) || 
+                     staffConfig.rlhReceptionists.includes(staffName) || 
+                     staffConfig.banksideReceptionists.includes(staffName)) {
+                return "Receptionist";
+            } else if (staffConfig.eastAttendance.includes(staffName) || 
+                     staffConfig.rlhAttendance.includes(staffName) || 
+                     staffConfig.banksideAttendance.includes(staffName)) {
+                return "Spa Attendance";
+            } else if (staffConfig.eastTherapists.includes(staffName) || 
+                     staffConfig.rlhTherapists.includes(staffName)) {
+                return "Therapist";
+            }
+            
+            return "";
+        }
+        
+        // Функция для нахождения всех приглашенных сотрудников (работающих не в своей основной локации)
+        function findAllGuestStaff(data, headerInfo) {
+            const result = [];
+            const dayColumns = headerInfo.dayColumns;
+            
+            // Перечень всех известных сотрудников
+            const allStaff = new Set([
+                ...staffConfig.eastReceptionists,
+                ...staffConfig.eastAttendance,
+                ...staffConfig.eastTherapists,
+                ...staffConfig.rlhReceptionists,
+                ...staffConfig.rlhAttendance,
+                ...staffConfig.rlhTherapists,
+                ...staffConfig.banksideReceptionists,
+                ...staffConfig.banksideAttendance
+            ]);
+            
+            // Цвета локаций в формате RGB
+            const locationColors = {
+                "East": "93c47d", // Зеленый
+                "RLH": "4a86e8",  // Синий
+                "Bankside": "b7b7b7", // Серый
+                "Sick": "ff0000" // Красный для sick
+            };
+            
+            // Функция для проверки приблизительного совпадения цветов
+            function isSimilarColor(color1, color2) {
+                if (!color1 || !color2) return false;
+                
+                // Если точное совпадение
+                if (color1.toLowerCase() === color2.toLowerCase()) return true;
+                
+                // Проверяем приблизительное совпадение
+                try {
+                    // Преобразуем цвета в RGB компоненты
+                    const rgb1 = {
+                        r: parseInt(color1.substring(0, 2), 16),
+                        g: parseInt(color1.substring(2, 4), 16),
+                        b: parseInt(color1.substring(4, 6), 16)
+                    };
+                    
+                    const rgb2 = {
+                        r: parseInt(color2.substring(0, 2), 16),
+                        g: parseInt(color2.substring(2, 4), 16),
+                        b: parseInt(color2.substring(4, 6), 16)
+                    };
+                    
+                    // Вычисляем разницу между компонентами
+                    const diff = {
+                        r: Math.abs(rgb1.r - rgb2.r),
+                        g: Math.abs(rgb1.g - rgb2.g),
+                        b: Math.abs(rgb1.b - rgb2.b)
+                    };
+                    
+                    // Если разница меньше порогового значения, считаем цвета похожими
+                    const threshold = 10;
+                    return diff.r <= threshold && diff.g <= threshold && diff.b <= threshold;
+                } catch (e) {
+                    console.error("Ошибка при сравнении цветов:", e);
+                    return false;
+                }
+            }
+            
+            console.log("Начинаю поиск приглашенных сотрудников...");
+            console.log("Используемые цвета локаций:", locationColors);
+            
+            // Проверяем наличие извлеченных цветов ячеек
+            if (!window.excelCellColors || Object.keys(window.excelCellColors).length === 0) {
+                console.warn("Не найдены извлеченные цвета ячеек!");
+            } else {
+                console.log(`Найдено ${Object.keys(window.excelCellColors).length} цветов ячеек`);
+            }
+            
+            // Создаем отладочный элемент для вывода информации
+            let debugInfo = "Отладочная информация по приглашенным сотрудникам:<br>";
+            
+            // Для каждого сотрудника
+            for (const staffName of allStaff) {
+                const homeLocation = getStaffHomeLocation(staffName);
+                const position = getStaffPosition(staffName);
+                
+                // Если не можем определить домашнюю локацию, пропускаем
+                if (!homeLocation) {
+                    console.log(`Не удалось определить домашнюю локацию для ${staffName}, пропускаю`);
+                    debugInfo += `Не удалось определить домашнюю локацию для ${staffName}<br>`;
+                    continue;
+                }
+                
+                console.log(`Проверяю сотрудника: ${staffName}, домашняя локация: ${homeLocation}`);
+                debugInfo += `<strong>Сотрудник ${staffName}</strong>, домашняя локация: ${homeLocation}<br>`;
+                
+                // Ищем строки с этим сотрудником в данных
+                let foundStaff = false;
+                
+                for (let i = 0; i < data.length; i++) {
+                    if (!data[i] || !data[i][0] || typeof data[i][0] !== 'string') continue;
+                    
+                    const rowStaffName = data[i][0].trim();
+                    
+                    // Если нашли этого сотрудника
+                    if (rowStaffName === staffName || rowStaffName.includes(staffName) || staffName.includes(rowStaffName)) {
+                        foundStaff = true;
+                        console.log(`Нашел сотрудника ${staffName} в строке ${i}`);
+                        debugInfo += `Найден в строке ${i}<br>`;
+                        
+                        // Просматриваем все дни недели и ищем смены в других локациях по цвету
+                        const guestShifts = [];
+                        
+                        for (let j = 0; j < dayColumns.length; j++) {
+                            const col = dayColumns[j];
+                            
+                            if (col < data[i].length && data[i][col] !== null) {
+                                const shift = String(data[i][col]);
+                                
+                                // Если это не выходной и есть смена
+                                if (shift && shift !== "X" && shift !== "XR" && 
+                                    shift !== "HOL" && shift !== "TR") {
+                                    
+                                    console.log(`Проверяю смену для ${staffName}, день ${j}, значение: ${shift}`);
+                                    debugInfo += `День ${j}, смена: ${shift} - `;
+                                    
+                                    // Получаем цвет ячейки из данных Excel
+                                    let cellColor = null;
+                                    
+                                    // Пытаемся получить цвет из извлеченных цветов ячеек
+                                    if (window.excelCellColors) {
+                                        // Вычисляем адрес ячейки в формате Excel (например, A1, B2)
+                                        const colLetter = String.fromCharCode(65 + col); // A, B, C, ...
+                                        const rowNumber = i + 1; // Excel начинает с 1
+                                        const cellAddress = `${colLetter}${rowNumber}`;
+                                        
+                                        console.log(`Ищу цвет для ячейки ${cellAddress}`);
+                                        
+                                        if (window.excelCellColors[cellAddress]) {
+                                            cellColor = window.excelCellColors[cellAddress];
+                                            console.log(`Найден цвет для ячейки ${cellAddress}: ${cellColor}`);
+                                            debugInfo += `цвет: ${cellColor} - `;
+                                        } else {
+                                            debugInfo += `цвет не найден в excelCellColors - `;
+                                        }
+                                    }
+                                    
+                                    // Если не нашли цвет в извлеченных данных, пробуем другие методы
+                                    if (!cellColor) {
+                                        // Проверяем наличие свойства _cells
+                                        if (data[i]._cells && data[i]._cells[col]) {
+                                            console.log(`Нашел _cells для ${staffName}, день ${j}`);
+                                            
+                                            // Проверяем стили
+                                            if (data[i]._cells[col].s) {
+                                                console.log(`Нашел стили для ${staffName}, день ${j}`);
+                                                
+                                                // Проверяем разные свойства для цвета
+                                                if (data[i]._cells[col].s.bgColor && data[i]._cells[col].s.bgColor.rgb) {
+                                                    cellColor = data[i]._cells[col].s.bgColor.rgb.toLowerCase();
+                                                    console.log(`Нашел bgColor: ${cellColor}`);
+                                                    debugInfo += `найден bgColor: ${cellColor} - `;
+                                                }
+                                                else if (data[i]._cells[col].s.fgColor && data[i]._cells[col].s.fgColor.rgb) {
+                                                    cellColor = data[i]._cells[col].s.fgColor.rgb.toLowerCase();
+                                                    console.log(`Нашел fgColor: ${cellColor}`);
+                                                    debugInfo += `найден fgColor: ${cellColor} - `;
+                                                }
+                                                else if (data[i]._cells[col].s.fill && data[i]._cells[col].s.fill.fgColor && data[i]._cells[col].s.fill.fgColor.rgb) {
+                                                    cellColor = data[i]._cells[col].s.fill.fgColor.rgb.toLowerCase();
+                                                    console.log(`Нашел fill.fgColor: ${cellColor}`);
+                                                    debugInfo += `найден fill.fgColor: ${cellColor} - `;
+                                                }
+                                            }
+                                        }
+                                        
+                                        // Проверяем свойство s напрямую
+                                        if (!cellColor && data[i][col] && data[i][col].s) {
+                                            console.log(`Проверяю свойство s напрямую для ${staffName}, день ${j}`);
+                                            
+                                            if (data[i][col].s.fill && data[i][col].s.fill.fgColor && data[i][col].s.fill.fgColor.rgb) {
+                                                cellColor = data[i][col].s.fill.fgColor.rgb.toLowerCase();
+                                                console.log(`Нашел прямой fill.fgColor: ${cellColor}`);
+                                                debugInfo += `найден прямой fill.fgColor: ${cellColor} - `;
+                                            }
+                                        }
+                                        
+                                        // Проверяем свойство style
+                                        if (!cellColor && data[i][col] && data[i][col].style) {
+                                            console.log(`Проверяю свойство style для ${staffName}, день ${j}`);
+                                            
+                                            if (data[i][col].style.fill && data[i][col].style.fill.fgColor && data[i][col].style.fill.fgColor.rgb) {
+                                                cellColor = data[i][col].style.fill.fgColor.rgb.toLowerCase();
+                                                console.log(`Нашел style.fill.fgColor: ${cellColor}`);
+                                                debugInfo += `найден style.fill.fgColor: ${cellColor} - `;
+                                            }
+                                        }
+                                    }
+                                    
+                                    // Проверяем, является ли ячейка "sick" по цвету или тексту
+                                    if ((cellColor && isSimilarColor(cellColor, locationColors.Sick)) || shift === "sick") {
+                                        // Это sick, не добавляем в гостевые смены
+                                        console.log(`${staffName} болеет в день ${j}`);
+                                        debugInfo += `болеет<br>`;
+                                        continue;
+                                    }
+                                    
+                                    // Определяем локацию по цвету
+                                    let shiftLocation = null;
+                                    
+                                    if (cellColor) {
+                                        console.log(`Цвет ячейки для ${staffName}, день ${j}: ${cellColor}`);
+                                        
+                                        // Проверяем цвет на соответствие локациям с учетом приблизительного совпадения
+                                        let matchedLocation = null;
+                                        
+                                        // Проверяем East (зеленый)
+                                        if (isSimilarColor(cellColor, locationColors.East)) {
+                                            matchedLocation = "East";
+                                            debugInfo += `цвет соответствует East - `;
+                                        }
+                                        // Проверяем RLH (синий)
+                                        else if (isSimilarColor(cellColor, locationColors.RLH)) {
+                                            matchedLocation = "RLH";
+                                            debugInfo += `цвет соответствует RLH - `;
+                                        }
+                                        // Проверяем Bankside (серый)
+                                        else if (isSimilarColor(cellColor, locationColors.Bankside)) {
+                                            matchedLocation = "Bankside";
+                                            debugInfo += `цвет соответствует Bankside - `;
+                                        } else {
+                                            debugInfo += `цвет не соответствует ни одной локации - `;
+                                        }
+                                        
+                                        // Если нашли соответствие и это не домашняя локация
+                                        if (matchedLocation && matchedLocation !== homeLocation) {
+                                            shiftLocation = matchedLocation;
+                                            console.log(`${staffName} работает в ${matchedLocation} (не его домашняя локация)`);
+                                            debugInfo += `работает в ${matchedLocation} (не его домашняя локация)<br>`;
+                                        } else if (matchedLocation) {
+                                            console.log(`${staffName} работает в ${matchedLocation} (его домашняя локация)`);
+                                            debugInfo += `работает в ${matchedLocation} (его домашняя локация)<br>`;
+                                        } else {
+                                            console.log(`Неизвестный цвет ячейки для ${staffName}, день ${j}: ${cellColor}`);
+                                            debugInfo += `неизвестный цвет: ${cellColor}<br>`;
+                                        }
+                                    } else {
+                                        console.log(`Не удалось определить цвет ячейки для ${staffName}, день ${j}`);
+                                        debugInfo += `не удалось определить цвет<br>`;
+                                        
+                                        // Попробуем определить локацию по тексту смены
+                                        if (shift.includes("east") || shift.includes("East")) {
+                                            if (homeLocation !== "East") {
+                                        shiftLocation = "East";
+                                                console.log(`${staffName} работает в East по тексту смены (не его домашняя локация)`);
+                                                debugInfo += `работает в East по тексту (не его домашняя локация)<br>`;
+                                            }
+                                        } else if (shift.includes("rlh") || shift.includes("RLH")) {
+                                            if (homeLocation !== "RLH") {
+                                        shiftLocation = "RLH";
+                                                console.log(`${staffName} работает в RLH по тексту смены (не его домашняя локация)`);
+                                                debugInfo += `работает в RLH по тексту (не его домашняя локация)<br>`;
+                                            }
+                                        } else if (shift.includes("bankside") || shift.includes("Bankside")) {
+                                            if (homeLocation !== "Bankside") {
+                                        shiftLocation = "Bankside";
+                                                console.log(`${staffName} работает в Bankside по тексту смены (не его домашняя локация)`);
+                                                debugInfo += `работает в Bankside по тексту (не его домашняя локация)<br>`;
+                                            }
+                                        }
+                                    }
+                                    
+                                    // Если определили локацию и она отличается от домашней
+                                    if (shiftLocation) {
+                                        guestShifts.push({
+                                            day: j,
+                                            shift: shift,
+                                            location: shiftLocation
+                                        });
+                                        console.log(`Добавлена гостевая смена для ${staffName}, день ${j}, локация: ${shiftLocation}`);
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Если есть хотя бы одна гостевая смена
+                        if (guestShifts.length > 0) {
+                            console.log(`${staffName} имеет ${guestShifts.length} гостевых смен`);
+                            debugInfo += `<strong>Итог: ${staffName} имеет ${guestShifts.length} гостевых смен</strong><br>`;
+                            
+                            // Создаем расписание для всех дней
+                            const schedule = new Array(dayColumns.length).fill("");
+                            
+                            // Заполняем только гостевые смены
+                            for (const { day, shift } of guestShifts) {
+                                schedule[day] = shift;
+                            }
+                            
+                            // Добавляем в результат
+                            result.push({
+                                name: staffName,
+                                homeLocation: homeLocation,
+                                position: position,
+                                guestLocation: guestShifts[0].location,
+                                schedule: schedule,
+                                shifts: guestShifts
+                            });
+                            console.log(`${staffName} добавлен в список приглашенных сотрудников`);
+                        } else {
+                            console.log(`${staffName} не имеет гостевых смен`);
+                            debugInfo += `<strong>Итог: ${staffName} не имеет гостевых смен</strong><br>`;
+                        }
+                            
+                            break; // Нашли сотрудника, переходим к следующему
+                        }
+                    }
+                
+                if (!foundStaff) {
+                    debugInfo += `Сотрудник ${staffName} не найден в данных<br>`;
+                }
+            }
+            
+            console.log(`Всего найдено ${result.length} приглашенных сотрудников`);
+            debugInfo += `<strong>Всего найдено ${result.length} приглашенных сотрудников</strong><br>`;
+            
+            // Выводим отладочную информацию в консоль в виде HTML
+            console.log("%c Отладочная информация по приглашенным сотрудникам", "font-size: 16px; font-weight: bold;");
+            console.log(debugInfo);
+            
+            // Создаем скрытый элемент для отладочной информации
+            const debugElement = document.createElement('div');
+            debugElement.id = 'debugInfo';
+            debugElement.style.display = 'none';
+            debugElement.style.padding = '20px';
+            debugElement.style.backgroundColor = '#f9f9f9';
+            debugElement.style.border = '1px solid #ddd';
+            debugElement.style.margin = '20px 0';
+            debugElement.style.maxHeight = '500px';
+            debugElement.style.overflow = 'auto';
+            debugElement.innerHTML = debugInfo;
+            
+            // Добавляем кнопку для показа/скрытия отладочной информации
+            const debugButton = document.createElement('button');
+            debugButton.textContent = 'Show Debug Information';
+            debugButton.style.marginTop = '10px';
+            debugButton.style.padding = '5px 10px';
+            debugButton.style.backgroundColor = '#f0f0f0';
+            debugButton.style.border = '1px solid #ddd';
+            debugButton.style.borderRadius = '4px';
+            debugButton.style.cursor = 'pointer';
+            
+            debugButton.onclick = function() {
+                const debugElement = document.getElementById('debugInfo');
+                if (debugElement.style.display === 'none') {
+                    debugElement.style.display = 'block';
+                    this.textContent = 'Hide Debug Information';
+                } else {
+                    debugElement.style.display = 'none';
+                    this.textContent = 'Show Debug Information';
+                }
+            };
+            
+            // Добавляем элементы на страницу
+            const container = document.querySelector('.container');
+            container.appendChild(debugButton);
+            container.appendChild(debugElement);
+            
+            return result;
+        }
+        
+        // Функция для заполнения таблицы данными о приглашенных сотрудниках
+        function populateAllGuestStaffTable(tableId, guestStaff, headings) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+            
+            const tbody = table.querySelector("tbody");
+            if (!tbody) return;
+            
+            // Clear the table
+            tbody.innerHTML = "";
+            
+            // If there are no guest staff, display a message
+            if (guestStaff.length === 0) {
+                const tr = document.createElement("tr");
+                const td = document.createElement("td");
+                td.textContent = "No guest staff for this week";
+                td.colSpan = 4 + headings.length; // 4 base columns + days of the week
+                td.style.textAlign = "center";
+                td.style.fontStyle = "italic";
+                td.style.padding = "20px";
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+                return;
+            }
+            
+            // Populate the table with data
+            for (const staff of guestStaff) {
+                const tr = document.createElement("tr");
+                
+                // Staff name
+                const tdName = document.createElement("td");
+                tdName.textContent = staff.name;
+                tr.appendChild(tdName);
+                
+                // Home location
+                const tdHome = document.createElement("td");
+                tdHome.textContent = staff.homeLocation;
+                tdHome.className = `loc-${staff.homeLocation.toLowerCase()}`;
+                tr.appendChild(tdHome);
+                
+                // Position
+                const tdPosition = document.createElement("td");
+                tdPosition.textContent = staff.position;
+                tr.appendChild(tdPosition);
+                
+                // Working at
+                const tdGuest = document.createElement("td");
+                tdGuest.textContent = staff.guestLocation;
+                tdGuest.className = `loc-${staff.guestLocation.toLowerCase()}`;
+                tr.appendChild(tdGuest);
+                
+                // Days of the week
+                for (let i = 0; i < staff.schedule.length; i++) {
+                    const tdDay = document.createElement("td");
+                    
+                    // Проверяем, является ли значение "sick"
+                    if (staff.schedule[i] === "sick") {
+                        tdDay.textContent = "🤒";
+                    } else {
+                        tdDay.textContent = staff.schedule[i];
+                    }
+                    
+                    // Add color based on location
+                    if (staff.schedule[i]) {
+                        for (const shift of staff.shifts) {
+                            if (shift.day === i) {
+                                tdDay.className = `loc-${shift.location.toLowerCase()}`;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    tr.appendChild(tdDay);
+                }
+                
+                tbody.appendChild(tr);
+            }
+        }
+        
+        // Функция для заполнения таблицы данными о сотрудниках
+        function populateStaffTable(tableId, staffData) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+            
+            const tbody = table.querySelector("tbody");
+            if (!tbody) return;
+            
+            for (const staff of staffData) {
+                const tr = document.createElement("tr");
+                
+                // Добавляем класс для Senior Supervisor или Senior Receptionist
+                if (staffConfig.seniorSupervisors.includes(staff.name)) {
+                    tr.className = "senior-supervisor";
+                } else if (staffConfig.seniorReceptionists.includes(staff.name)) {
+                    tr.className = "senior-receptionist";
+                }
+                
+                // Ячейка с именем сотрудника
+                const nameTd = document.createElement("td");
+                
+                // Проверяем, является ли сотрудник гостевым для текущей локации
+                let isGuest = false;
+                let guestLocation = "";
+                
+                // Определяем текущую локацию по ID таблицы
+                let currentLocation = "";
+                if (tableId.startsWith("east")) {
+                    currentLocation = "East";
+                } else if (tableId.startsWith("rlh")) {
+                    currentLocation = "RLH";
+                } else if (tableId.startsWith("bankside")) {
+                    currentLocation = "Bankside";
+                }
+                
+                // Проверяем, является ли сотрудник гостевым для текущей локации
+                if (staff.homeLocation && staff.homeLocation !== currentLocation && currentLocation !== "") {
+                    isGuest = true;
+                    guestLocation = staff.homeLocation;
+                }
+                
+                // Добавляем должность для администраторов
+                if (tableId === "eastAdmins" || tableId === "rlhAdmins" || tableId === "banksideAdmins") {
+                    const nameSpan = document.createElement("span");
+                    
+                    // Добавляем название СПА в скобках для гостевых сотрудников
+                    if (isGuest) {
+                        nameSpan.textContent = `${staff.name} (${guestLocation})`;
+                    } else {
+                        nameSpan.textContent = staff.name;
+                    }
+                    
+                    nameTd.appendChild(nameSpan);
+                    
+                    // Добавляем метку должности
+                    const positionSpan = document.createElement("span");
+                    positionSpan.className = "position-label";
+                    
+                    if (staffConfig.seniorSupervisors.includes(staff.name)) {
+                        positionSpan.textContent = "Senior Reception Supervisor";
+                    } else if (staffConfig.seniorReceptionists.includes(staff.name)) {
+                        positionSpan.textContent = "Senior Receptionist";
+                    } else {
+                        positionSpan.textContent = "Receptionist";
+                    }
+                    
+                    nameTd.appendChild(positionSpan);
+                } else {
+                    // Добавляем название СПА в скобках для гостевых сотрудников
+                    if (isGuest) {
+                        nameTd.textContent = `${staff.name} (${guestLocation})`;
+                    } else {
+                        nameTd.textContent = staff.name;
+                    }
+                }
+                
+                tr.appendChild(nameTd);
+                
+                // Ячейки с расписанием
+                for (let i = 0; i < staff.schedule.length; i++) {
+                    const scheduleTd = document.createElement("td");
+                    
+                    // Устанавливаем текст и класс ячейки
+                    const value = staff.schedule[i];
+                    
+                    // Проверяем, является ли значение "sick"
+                    if (value === "sick") {
+                        scheduleTd.textContent = "🤒";
+                    } else {
+                    scheduleTd.textContent = value;
+                    }
+                    
+                    scheduleTd.className = getCellClass(value);
+                    
+                    tr.appendChild(scheduleTd);
+                }
+                
+                tbody.appendChild(tr);
+            }
+        }
+        
+        // Функция для очистки всех таблиц
+        function clearAllTables() {
+            const tables = [
+                "eastAdmins", "eastAttendance", "eastTherapists",
+                "rlhAdmins", "rlhAttendance", "rlhTherapists",
+                "banksideAdmins", "banksideAttendance", "allGuestStaff",
+                "staffHoursTable", "locationHoursTable", "positionHoursTable"
+            ];
+            
+            for (const tableId of tables) {
+                clearTableData(tableId);
+            }
+        }
+        
+        // Load demo data when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the page
+            document.getElementById('statusMessage').className = 'status';
+            document.getElementById('statusMessage').textContent = 'Upload an Excel file to display the schedule.';
+        });
+        
+        // File change handler
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                console.log("File selected:", file.name);
+                handleExcelFile(file);
+            }
+        });
+        
+        // Function to extract cell colors
+        function extractCellColors(worksheet) {
+            console.log("Extracting cell colors from Excel...");
+            
+            // Create object to store colors
+            const cellColors = {};
+            
+            // Location colors for checking
+            const locationColors = ["93c47d", "4a86e8", "b7b7b7", "ff0000"];
+            
+            // Go through all cells in the sheet
+            for (const cellAddress in worksheet) {
+                // Skip service properties
+                if (cellAddress[0] === '!') continue;
+                
+                const cell = worksheet[cellAddress];
+                
+                // Check for styles
+                if (cell.s) {
+                    let cellColor = null;
+                    
+                    // Check different properties for color
+                    if (cell.s.fill && cell.s.fill.fgColor && cell.s.fill.fgColor.rgb) {
+                        cellColor = cell.s.fill.fgColor.rgb.toLowerCase();
+                    } else if (cell.s.fgColor && cell.s.fgColor.rgb) {
+                        cellColor = cell.s.fgColor.rgb.toLowerCase();
+                    } else if (cell.s.bgColor && cell.s.bgColor.rgb) {
+                        cellColor = cell.s.bgColor.rgb.toLowerCase();
+                    }
+                    
+                    // If color found, save it
+                    if (cellColor) {
+                        cellColors[cellAddress] = cellColor;
+                        
+                        // Output only colors corresponding to locations or sick
+                        if (locationColors.includes(cellColor)) {
+                            console.log(`Cell ${cellAddress}: color ${cellColor}`);
+                        }
+                    }
+                }
+            }
+            
+            // Output statistics on found colors
+            const colorStats = {};
+            for (const cellAddress in cellColors) {
+                const color = cellColors[cellAddress];
+                colorStats[color] = (colorStats[color] || 0) + 1;
+            }
+            
+            console.log("Color statistics:");
+            for (const color in colorStats) {
+                console.log(`${color}: ${colorStats[color]} cells`);
+            }
+            
+            console.log(`Extracted ${Object.keys(cellColors).length} cell colors`);
+            return cellColors;
+        }
+        
+        // Function to calculate hours from a shift string
+        function calculateHoursFromShift(shift) {
+            if (!shift || typeof shift !== 'string') return 0;
+            
+            // Skip special statuses
+            if (shift === "X" || shift === "XR" || shift === "HOL" || shift === "sick" || shift === "TR") {
+                return 0;
+            }
+            
+            console.log(`Расчет часов для смены: ${shift}`);
+            
+            // Попробуем разные форматы времени
+            
+            // Формат "08.45-19.15" (с точкой)
+            let match = shift.match(/(\d{1,2})\.(\d{2})-(\d{1,2})\.(\d{2})/);
+            if (match) {
+                let startHour = parseInt(match[1]);
+                let startMinute = parseInt(match[2]);
+                let endHour = parseInt(match[3]);
+                let endMinute = parseInt(match[4]);
+                
+                console.log(`Формат с точкой: ${startHour}:${startMinute} - ${endHour}:${endMinute}`);
+                
+                // Проверяем, не переходит ли смена на следующий день
+                if (endHour < startHour || (endHour === startHour && endMinute < startMinute)) {
+                    endHour += 24; // Добавляем 24 часа, если смена переходит на следующий день
+                }
+                
+                // Рассчитываем общее количество часов
+                let totalHours = (endHour - startHour) + (endMinute - startMinute) / 60;
+                
+                // Вычитаем 30 минут (0.5 часа) из каждой рабочей смены
+                totalHours = Math.max(0, totalHours - 0.5);
+                
+                console.log(`Рассчитанные часы (после вычета 30 минут): ${totalHours}`);
+                
+                return Math.round(totalHours * 10) / 10; // Округляем до 1 десятичного знака
+            }
+            
+            // Формат "08:45-19:15" (с двоеточием)
+            match = shift.match(/(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})/);
+            if (match) {
+                let startHour = parseInt(match[1]);
+                let startMinute = parseInt(match[2]);
+                let endHour = parseInt(match[3]);
+                let endMinute = parseInt(match[4]);
+                
+                console.log(`Формат с двоеточием: ${startHour}:${startMinute} - ${endHour}:${endMinute}`);
+                
+                // Проверяем, не переходит ли смена на следующий день
+                if (endHour < startHour || (endHour === startHour && endMinute < startMinute)) {
+                    endHour += 24; // Добавляем 24 часа, если смена переходит на следующий день
+                }
+                
+                // Рассчитываем общее количество часов
+                let totalHours = (endHour - startHour) + (endMinute - startMinute) / 60;
+                
+                // Вычитаем 30 минут (0.5 часа) из каждой рабочей смены
+                totalHours = Math.max(0, totalHours - 0.5);
+                
+                console.log(`Рассчитанные часы (после вычета 30 минут): ${totalHours}`);
+                
+                return Math.round(totalHours * 10) / 10; // Округляем до 1 десятичного знака
+            }
+            
+            // Формат "9-5" (только часы)
+            match = shift.match(/^(\d{1,2})-(\d{1,2})$/);
+            if (match) {
+                let startHour = parseInt(match[1]);
+                let endHour = parseInt(match[2]);
+                
+                console.log(`Формат только часы: ${startHour} - ${endHour}`);
+                
+                // Если конечный час меньше начального, предполагаем, что это PM время
+                if (endHour < startHour) {
+                    endHour += 12; // Добавляем 12 часов для PM времени
+                }
+                
+                // Рассчитываем общее количество часов
+                let totalHours = endHour - startHour;
+                
+                // Вычитаем 30 минут (0.5 часа) из каждой рабочей смены
+                totalHours = Math.max(0, totalHours - 0.5);
+                
+                console.log(`Рассчитанные часы (после вычета 30 минут): ${totalHours}`);
+                
+                return totalHours;
+            }
+            
+            // Если не удалось распознать формат, предполагаем стандартную 8-часовую смену
+            console.log(`Не удалось распознать формат смены: ${shift}, используем стандартные 8 часов (после вычета 30 минут: 7.5)`);
+            return 7.5; // 8 часов минус 30 минут (0.5 часа)
+        }
+        
+        // Function to get cell color for a staff member on a specific day
+        function getCellColorForStaff(staffName, dayIndex, homeLocation) {
+            if (!window.lastLoadedData) return null;
+            
+            const data = window.lastLoadedData;
+            const headerInfo = findHeaderInfo(data);
+            
+            if (!headerInfo || !headerInfo.dayColumns || headerInfo.dayColumns.length === 0) {
+                return null;
+            }
+            
+            const col = headerInfo.dayColumns[dayIndex];
+            
+            // Find staff row
+            for (let i = 0; i < data.length; i++) {
+                if (!data[i] || !data[i][0] || typeof data[i][0] !== 'string') continue;
+                
+                const rowStaffName = data[i][0].trim();
+                
+                if (rowStaffName.includes(staffName) || staffName.includes(rowStaffName)) {
+                    // Check cell color
+                    if (data[i]._cells && data[i]._cells[col] && data[i]._cells[col].s) {
+                        let cellColor = null;
+                        
+                        // Check different properties for color
+                        if (data[i]._cells[col].s.bgColor && data[i]._cells[col].s.bgColor.rgb) {
+                            cellColor = data[i]._cells[col].s.bgColor.rgb.toLowerCase();
+                            console.log(`Found bgColor: ${cellColor}`);
+                        }
+                        else if (data[i]._cells[col].s.fgColor && data[i]._cells[col].s.fgColor.rgb) {
+                            cellColor = data[i]._cells[col].s.fgColor.rgb.toLowerCase();
+                            console.log(`Found fgColor: ${cellColor}`);
+                        }
+                        else if (data[i]._cells[col].s.fill && data[i]._cells[col].s.fill.fgColor && data[i]._cells[col].s.fill.fgColor.rgb) {
+                            cellColor = data[i]._cells[col].s.fill.fgColor.rgb.toLowerCase();
+                            console.log(`Found fill.fgColor: ${cellColor}`);
+                        }
+                        
+                        if (cellColor) {
+                            // Check which location this color corresponds to
+                            if (isSimilarColor(cellColor, locationColors.East)) {
+                                return "East";
+                            } else if (isSimilarColor(cellColor, locationColors.RLH)) {
+                                return "RLH";
+                            } else if (isSimilarColor(cellColor, locationColors.Bankside)) {
+                                return "Bankside";
+                            }
+                        }
+                    }
+                    
+                    return homeLocation; // Default to home location if no color found
+                }
+            }
+            
+            return null;
+        }
+        
+        // Function to populate staff hours table
+        function populateStaffHoursTable(staffList) {
+            const table = document.getElementById('staffHoursTable');
+            if (!table) return;
+            
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+            
+            // Clear the table
+            tbody.innerHTML = '';
+            
+            // Sort staff by total hours (descending)
+            staffList.sort((a, b) => b.totalHours - a.totalHours);
+            
+            // Add each staff member to the table
+            for (const staff of staffList) {
+                // Skip staff with 0 hours
+                if (staff.totalHours === 0) continue;
+                
+                const tr = document.createElement('tr');
+                
+                // Staff name
+                const tdName = document.createElement('td');
+                
+                // Определяем локации, где сотрудник работает как гость
+                let guestLocations = [];
+                if (staff.homeLocation !== "East" && staff.eastHours > 0) {
+                    guestLocations.push("East");
+                }
+                if (staff.homeLocation !== "RLH" && staff.rlhHours > 0) {
+                    guestLocations.push("RLH");
+                }
+                if (staff.homeLocation !== "Bankside" && staff.banksideHours > 0) {
+                    guestLocations.push("Bankside");
+                }
+                
+                // Добавляем название СПА в скобках для гостевых сотрудников
+                if (guestLocations.length > 0) {
+                    tdName.textContent = `${staff.name} (${guestLocations.join(", ")})`;
+                } else {
+                    tdName.textContent = staff.name;
+                }
+                
+                tdName.style.fontWeight = 'bold';
+                tr.appendChild(tdName);
+                
+                // Staff position
+                const tdPosition = document.createElement('td');
+                tdPosition.textContent = staff.position || 'N/A';
+                tr.appendChild(tdPosition);
+                
+                // Staff home location
+                const tdLocation = document.createElement('td');
+                tdLocation.textContent = staff.homeLocation || 'N/A';
+                
+                // Apply location color
+                if (staff.homeLocation) {
+                    tdLocation.className = `loc-${staff.homeLocation.toLowerCase()}`;
+                }
+                
+                tr.appendChild(tdLocation);
+                
+                // Total hours
+                const tdTotalHours = document.createElement('td');
+                tdTotalHours.textContent = staff.totalHours.toFixed(1);
+                tdTotalHours.style.textAlign = 'right';
+                tdTotalHours.style.fontWeight = 'bold';
+                tr.appendChild(tdTotalHours);
+                
+                // Home hours
+                const tdHomeHours = document.createElement('td');
+                tdHomeHours.textContent = staff.homeHours.toFixed(1);
+                tdHomeHours.style.textAlign = 'right';
+                tr.appendChild(tdHomeHours);
+                
+                // Guest hours
+                const tdGuestHours = document.createElement('td');
+                tdGuestHours.textContent = staff.guestHours.toFixed(1);
+                tdGuestHours.style.textAlign = 'right';
+                tr.appendChild(tdGuestHours);
+                
+                // East hours
+                const tdEastHours = document.createElement('td');
+                tdEastHours.textContent = staff.eastHours.toFixed(1);
+                tdEastHours.style.textAlign = 'right';
+                if (staff.eastHours > 0) {
+                    tdEastHours.className = 'loc-east';
+                }
+                tr.appendChild(tdEastHours);
+                
+                // RLH hours
+                const tdRlhHours = document.createElement('td');
+                tdRlhHours.textContent = staff.rlhHours.toFixed(1);
+                tdRlhHours.style.textAlign = 'right';
+                if (staff.rlhHours > 0) {
+                    tdRlhHours.className = 'loc-rlh';
+                }
+                tr.appendChild(tdRlhHours);
+                
+                // Bankside hours
+                const tdBanksideHours = document.createElement('td');
+                tdBanksideHours.textContent = staff.banksideHours.toFixed(1);
+                tdBanksideHours.style.textAlign = 'right';
+                if (staff.banksideHours > 0) {
+                    tdBanksideHours.className = 'loc-bankside';
+                }
+                tr.appendChild(tdBanksideHours);
+                
+                tbody.appendChild(tr);
+            }
+            
+            // If no data, show message
+            if (tbody.children.length === 0) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.textContent = 'No data available';
+                td.colSpan = 9;
+                td.style.textAlign = 'center';
+                td.style.fontStyle = 'italic';
+                td.style.padding = '20px';
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+            }
+        }
+        
+        // Function to calculate hours by position
+        function calculatePositionHours(staffList) {
+            const positionTotals = {};
+            
+            staffList.forEach(staff => {
+                const totalHours = calculateTotalHoursForStaff(staff);
+                const position = staff.position || 'Unknown';
+                
+                // Add hours to appropriate position
+                positionTotals[position] = (positionTotals[position] || 0) + totalHours;
+            });
+            
+            return positionTotals;
+        }
+        
+        // Function to populate position hours table
+        function populatePositionHoursTable(positionTotals) {
+            const table = document.getElementById('positionHoursTable');
+            if (!table) return;
+            
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+            
+            // Clear the table
+            tbody.innerHTML = '';
+            
+            // Get positions sorted by total hours (descending)
+            const sortedPositions = Object.keys(positionTotals).sort((a, b) => 
+                positionTotals[b].total - positionTotals[a].total
+            );
+            
+            // Add each position to the table
+            for (const position of sortedPositions) {
+                const hours = positionTotals[position];
+                
+                // Skip positions with 0 hours
+                if (hours.total === 0) continue;
+                
+                const tr = document.createElement('tr');
+                
+                // Position name
+                const tdPosition = document.createElement('td');
+                tdPosition.textContent = position;
+                tdPosition.style.fontWeight = 'bold';
+                tr.appendChild(tdPosition);
+                
+                // Total hours
+                const tdTotal = document.createElement('td');
+                tdTotal.textContent = hours.total.toFixed(1);
+                tdTotal.style.textAlign = 'right';
+                tdTotal.style.fontWeight = 'bold';
+                tr.appendChild(tdTotal);
+                
+                // East hours
+                const tdEast = document.createElement('td');
+                tdEast.textContent = hours.east.toFixed(1);
+                tdEast.style.textAlign = 'right';
+                if (hours.east > 0) {
+                    tdEast.className = 'loc-east';
+                }
+                tr.appendChild(tdEast);
+                
+                // RLH hours
+                const tdRlh = document.createElement('td');
+                tdRlh.textContent = hours.rlh.toFixed(1);
+                tdRlh.style.textAlign = 'right';
+                if (hours.rlh > 0) {
+                    tdRlh.className = 'loc-rlh';
+                }
+                tr.appendChild(tdRlh);
+                
+                // Bankside hours
+                const tdBankside = document.createElement('td');
+                tdBankside.textContent = hours.bankside.toFixed(1);
+                tdBankside.style.textAlign = 'right';
+                if (hours.bankside > 0) {
+                    tdBankside.className = 'loc-bankside';
+                }
+                tr.appendChild(tdBankside);
+                
+                tbody.appendChild(tr);
+            }
+            
+            // If no data, show message
+            if (tbody.children.length === 0) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.textContent = 'No data available';
+                td.colSpan = 5;
+                td.style.textAlign = 'center';
+                td.style.fontStyle = 'italic';
+                td.style.padding = '20px';
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+            }
+        }
+        
+        // Function to calculate and display analytics
+        function calculateAndDisplayAnalytics(allStaffByCategory, guestStaff, headerInfo) {
+            console.log("Calculating analytics...");
+            
+            // Создаем отладочный элемент для вывода информации
+            let debugInfo = "<h3>Отладочная информация по аналитике</h3>";
+            
+            // Combine all staff into one list
+            let allStaff = [];
+            
+            // Add regular staff from all categories
+            for (const category in allStaffByCategory) {
+                if (allStaffByCategory[category] && Array.isArray(allStaffByCategory[category])) {
+                    debugInfo += `<p>Категория: ${category}, сотрудников: ${allStaffByCategory[category].length}</p>`;
+                    
+                    for (const staff of allStaffByCategory[category]) {
+                        // Добавляем информацию о домашней локации и должности
+                        const homeLocation = getStaffHomeLocation(staff.name);
+                        const position = getStaffPosition(staff.name);
+                        
+                        debugInfo += `<p>Сотрудник: ${staff.name}, домашняя локация: ${homeLocation}, должность: ${position}</p>`;
+                        
+                        allStaff.push({
+                            name: staff.name,
+                            homeLocation: homeLocation,
+                            position: position,
+                            schedule: staff.schedule,
+                            originalRow: staff.originalRow // Сохраняем номер строки в исходных данных
+                        });
+                    }
+                }
+            }
+            
+            // Add guest staff
+            if (guestStaff && guestStaff.length > 0) {
+                debugInfo += `<p>Приглашенных сотрудников: ${guestStaff.length}</p>`;
+                allStaff = allStaff.concat(guestStaff);
+            }
+            
+            console.log(`Total staff for analytics: ${allStaff.length}`);
+            debugInfo += `<p>Всего сотрудников для аналитики: ${allStaff.length}</p>`;
+            
+            // Удаляем дубликаты сотрудников (по имени)
+            const uniqueStaff = [];
+            const staffNames = new Set();
+            
+            for (const staff of allStaff) {
+                if (!staffNames.has(staff.name)) {
+                    staffNames.add(staff.name);
+                    uniqueStaff.push(staff);
+                }
+            }
+            
+            console.log(`Unique staff for analytics: ${uniqueStaff.length}`);
+            debugInfo += `<p>Уникальных сотрудников для аналитики: ${uniqueStaff.length}</p>`;
+            
+            // Рассчитываем часы для каждого сотрудника
+            for (const staff of uniqueStaff) {
+                // Инициализируем счетчики часов
+                staff.totalHours = 0;
+                staff.homeHours = 0;
+                staff.guestHours = 0;
+                staff.eastHours = 0;
+                staff.rlhHours = 0;
+                staff.banksideHours = 0;
+                
+                debugInfo += `<h4>Расчет часов для ${staff.name}</h4>`;
+                debugInfo += `<ul>`;
+                
+                // Проходим по расписанию и считаем часы
+                if (staff.schedule && Array.isArray(staff.schedule)) {
+                    for (let i = 0; i < staff.schedule.length; i++) {
+                        const shift = staff.schedule[i];
+                        
+                        // Пропускаем выходные и больничные
+                        if (!shift || shift === "X" || shift === "XR" || shift === "HOL" || shift === "TR" || shift === "sick") {
+                            continue;
+                        }
+                        
+                        // Рассчитываем часы для смены
+                        const hours = calculateHoursFromShift(shift);
+                        
+                        // Определяем локацию для смены
+                        let shiftLocation = null;
+                        
+                        // Получаем цвет ячейки для определения локации
+                        const cellColor = getCellColorForDay(staff.name, i, headerInfo);
+                        
+                        if (cellColor) {
+                            // Определяем локацию по цвету ячейки
+                            if (isSimilarColor(cellColor, locationColors.East)) {
+                                shiftLocation = "East";
+                            } else if (isSimilarColor(cellColor, locationColors.RLH)) {
+                                shiftLocation = "RLH";
+                            } else if (isSimilarColor(cellColor, locationColors.Bankside)) {
+                                shiftLocation = "Bankside";
+                            }
+                        }
+                        
+                        // Если не удалось определить локацию по цвету, проверяем гостевые смены
+                        if (!shiftLocation && staff.shifts && Array.isArray(staff.shifts)) {
+                            for (const guestShift of staff.shifts) {
+                                if (guestShift.day === i) {
+                                    shiftLocation = guestShift.location;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // Если все еще не удалось определить локацию, используем домашнюю
+                        if (!shiftLocation) {
+                            shiftLocation = staff.homeLocation;
+                        }
+                        
+                        debugInfo += `<li>День ${i+1}, смена: ${shift}, часы: ${hours}, локация: ${shiftLocation || 'неизвестно'}</li>`;
+                        
+                        // Добавляем часы к соответствующим счетчикам
+                        staff.totalHours += hours;
+                        
+                        if (shiftLocation === staff.homeLocation) {
+                            staff.homeHours += hours;
+                        } else if (shiftLocation) {
+                            staff.guestHours += hours;
+                        } else {
+                            // Если локация не определена, считаем как домашнюю
+                            staff.homeHours += hours;
+                        }
+                        
+                        // Добавляем часы к соответствующей локации
+                        if (shiftLocation === "East") {
+                            staff.eastHours += hours;
+                        } else if (shiftLocation === "RLH") {
+                            staff.rlhHours += hours;
+                        } else if (shiftLocation === "Bankside") {
+                            staff.banksideHours += hours;
+                        } else if (staff.homeLocation === "East") {
+                            // Если локация не определена, используем домашнюю
+                            staff.eastHours += hours;
+                        } else if (staff.homeLocation === "RLH") {
+                            staff.rlhHours += hours;
+                        } else if (staff.homeLocation === "Bankside") {
+                            staff.banksideHours += hours;
+                        }
+                    }
+                }
+                
+                debugInfo += `</ul>`;
+                debugInfo += `<p>Итого для ${staff.name}: всего часов: ${staff.totalHours.toFixed(1)}, домашние: ${staff.homeHours.toFixed(1)}, гостевые: ${staff.guestHours.toFixed(1)}, East: ${staff.eastHours.toFixed(1)}, RLH: ${staff.rlhHours.toFixed(1)}, Bankside: ${staff.banksideHours.toFixed(1)}</p>`;
+                
+                // Проверяем на отрицательные значения
+                if (staff.totalHours < 0 || staff.homeHours < 0 || staff.guestHours < 0 || 
+                    staff.eastHours < 0 || staff.rlhHours < 0 || staff.banksideHours < 0) {
+                    debugInfo += `<p style="color: red; font-weight: bold">ВНИМАНИЕ! Обнаружены отрицательные значения для ${staff.name}!</p>`;
+                }
+                
+                // Проверяем на несоответствие сумм
+                if (Math.abs(staff.totalHours - (staff.homeHours + staff.guestHours)) > 0.1) {
+                    debugInfo += `<p style="color: red; font-weight: bold">ВНИМАНИЕ! Несоответствие сумм для ${staff.name}: totalHours (${staff.totalHours.toFixed(1)}) ≠ homeHours (${staff.homeHours.toFixed(1)}) + guestHours (${staff.guestHours.toFixed(1)}) = ${(staff.homeHours + staff.guestHours).toFixed(1)}</p>`;
+                }
+                
+                if (Math.abs(staff.totalHours - (staff.eastHours + staff.rlhHours + staff.banksideHours)) > 0.1) {
+                    debugInfo += `<p style="color: red; font-weight: bold">ВНИМАНИЕ! Несоответствие сумм для ${staff.name}: totalHours (${staff.totalHours.toFixed(1)}) ≠ eastHours (${staff.eastHours.toFixed(1)}) + rlhHours (${staff.rlhHours.toFixed(1)}) + banksideHours (${staff.banksideHours.toFixed(1)}) = ${(staff.eastHours + staff.rlhHours + staff.banksideHours).toFixed(1)}</p>`;
+                }
+            }
+            
+            // Заполняем таблицу с часами сотрудников
+            populateStaffHoursTable(uniqueStaff);
+            
+            // Рассчитываем часы по локациям
+            const locationHours = {
+                "East": { total: 0, home: 0, guest: 0 },
+                "RLH": { total: 0, home: 0, guest: 0 },
+                "Bankside": { total: 0, home: 0, guest: 0 }
+            };
+            
+            for (const staff of uniqueStaff) {
+                // East часы
+                locationHours.East.total += staff.eastHours;
+                if (staff.homeLocation === "East") {
+                    locationHours.East.home += staff.eastHours;
+                } else {
+                    locationHours.East.guest += staff.eastHours;
+                }
+                
+                // RLH часы
+                locationHours.RLH.total += staff.rlhHours;
+                if (staff.homeLocation === "RLH") {
+                    locationHours.RLH.home += staff.rlhHours;
+                } else {
+                    locationHours.RLH.guest += staff.rlhHours;
+                }
+                
+                // Bankside часы
+                locationHours.Bankside.total += staff.banksideHours;
+                if (staff.homeLocation === "Bankside") {
+                    locationHours.Bankside.home += staff.banksideHours;
+                } else {
+                    locationHours.Bankside.guest += staff.banksideHours;
+                }
+            }
+            
+            debugInfo += `<h4>Итоговые часы по локациям:</h4>`;
+            for (const location in locationHours) {
+                debugInfo += `<p>${location}: всего: ${locationHours[location].total.toFixed(1)}, домашние: ${locationHours[location].home.toFixed(1)}, гостевые: ${locationHours[location].guest.toFixed(1)}</p>`;
+                
+                // Проверяем на отрицательные значения
+                if (locationHours[location].total < 0 || locationHours[location].home < 0 || locationHours[location].guest < 0) {
+                    debugInfo += `<p style="color: red; font-weight: bold">ВНИМАНИЕ! Обнаружены отрицательные значения для локации ${location}!</p>`;
+                }
+                
+                // Проверяем на несоответствие сумм
+                if (Math.abs(locationHours[location].total - (locationHours[location].home + locationHours[location].guest)) > 0.1) {
+                    debugInfo += `<p style="color: red; font-weight: bold">ВНИМАНИЕ! Несоответствие сумм для локации ${location}: total (${locationHours[location].total.toFixed(1)}) ≠ home (${locationHours[location].home.toFixed(1)}) + guest (${locationHours[location].guest.toFixed(1)}) = ${(locationHours[location].home + locationHours[location].guest).toFixed(1)}</p>`;
+                }
+            }
+            
+            // Заполняем таблицу с часами по локациям
+            populateLocationHoursTable(locationHours);
+            
+            // Рассчитываем часы по должностям
+            const positionHours = {};
+            
+            for (const staff of uniqueStaff) {
+                const position = staff.position || "Unknown";
+                
+                if (!positionHours[position]) {
+                    positionHours[position] = {
+                        total: 0,
+                        east: 0,
+                        rlh: 0,
+                        bankside: 0
+                    };
+                }
+                
+                positionHours[position].total += staff.totalHours;
+                positionHours[position].east += staff.eastHours;
+                positionHours[position].rlh += staff.rlhHours;
+                positionHours[position].bankside += staff.banksideHours;
+            }
+            
+            debugInfo += `<h4>Итоговые часы по должностям:</h4>`;
+            for (const position in positionHours) {
+                debugInfo += `<p>${position}: всего: ${positionHours[position].total.toFixed(1)}, East: ${positionHours[position].east.toFixed(1)}, RLH: ${positionHours[position].rlh.toFixed(1)}, Bankside: ${positionHours[position].bankside.toFixed(1)}</p>`;
+                
+                // Проверяем на отрицательные значения
+                if (positionHours[position].total < 0 || positionHours[position].east < 0 || 
+                    positionHours[position].rlh < 0 || positionHours[position].bankside < 0) {
+                    debugInfo += `<p style="color: red; font-weight: bold">ВНИМАНИЕ! Обнаружены отрицательные значения для должности ${position}!</p>`;
+                }
+                
+                // Проверяем на несоответствие сумм
+                if (Math.abs(positionHours[position].total - (positionHours[position].east + positionHours[position].rlh + positionHours[position].bankside)) > 0.1) {
+                    debugInfo += `<p style="color: red; font-weight: bold">ВНИМАНИЕ! Несоответствие сумм для должности ${position}: total (${positionHours[position].total.toFixed(1)}) ≠ east (${positionHours[position].east.toFixed(1)}) + rlh (${positionHours[position].rlh.toFixed(1)}) + bankside (${positionHours[position].bankside.toFixed(1)}) = ${(positionHours[position].east + positionHours[position].rlh + positionHours[position].bankside).toFixed(1)}</p>`;
+                }
+            }
+            
+            // Заполняем таблицу с часами по должностям
+            populatePositionHoursTable(positionHours);
+            
+            // Создаем элемент для отладочной информации
+            const debugElement = document.createElement('div');
+            debugElement.id = 'analyticsDebugInfo';
+            debugElement.style.display = 'none';
+            debugElement.style.padding = '20px';
+            debugElement.style.backgroundColor = '#f9f9f9';
+            debugElement.style.border = '1px solid #ddd';
+            debugElement.style.margin = '20px 0';
+            debugElement.style.maxHeight = '500px';
+            debugElement.style.overflow = 'auto';
+            debugElement.innerHTML = debugInfo;
+            
+            // Добавляем кнопку для показа/скрытия отладочной информации
+            const debugButton = document.createElement('button');
+            debugButton.textContent = 'Show Analytics Debug Info';
+            debugButton.style.marginTop = '10px';
+            debugButton.style.padding = '5px 10px';
+            debugButton.style.backgroundColor = '#f0f0f0';
+            debugButton.style.border = '1px solid #ddd';
+            debugButton.style.borderRadius = '4px';
+            debugButton.style.cursor = 'pointer';
+            
+            debugButton.onclick = function() {
+                const debugElement = document.getElementById('analyticsDebugInfo');
+                if (debugElement.style.display === 'none') {
+                    debugElement.style.display = 'block';
+                    this.textContent = 'Hide Analytics Debug Info';
+                } else {
+                    debugElement.style.display = 'none';
+                    this.textContent = 'Show Analytics Debug Info';
+                }
+            };
+            
+            // Добавляем элементы на страницу
+            const analyticsTab = document.getElementById('analytics-tab');
+            analyticsTab.appendChild(debugButton);
+            analyticsTab.appendChild(debugElement);
+        }
+        
+        // Function to populate location hours table
+        function populateLocationHoursTable(locationHours) {
+            const table = document.getElementById('locationHoursTable');
+            if (!table) return;
+            
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+            
+            // Clear the table
+            tbody.innerHTML = '';
+            
+            // Get locations sorted by total hours (descending)
+            const sortedLocations = Object.keys(locationHours).sort((a, b) => 
+                locationHours[b].total - locationHours[a].total
+            );
+            
+            // Add each location to the table
+            for (const location of sortedLocations) {
+                const hours = locationHours[location];
+                
+                // Skip locations with 0 hours
+                if (hours.total === 0) continue;
+                
+                const tr = document.createElement('tr');
+                
+                // Location name
+                const tdLocation = document.createElement('td');
+                tdLocation.textContent = location;
+                tdLocation.className = `loc-${location.toLowerCase()}`;
+                tr.appendChild(tdLocation);
+                
+                // Total hours
+                const tdTotal = document.createElement('td');
+                tdTotal.textContent = hours.total.toFixed(1);
+                tdTotal.style.textAlign = 'right';
+                tdTotal.style.fontWeight = 'bold';
+                tr.appendChild(tdTotal);
+                
+                // Home staff hours
+                const tdHome = document.createElement('td');
+                tdHome.textContent = hours.home.toFixed(1);
+                tdHome.style.textAlign = 'right';
+                tr.appendChild(tdHome);
+                
+                // Guest staff hours
+                const tdGuest = document.createElement('td');
+                tdGuest.textContent = hours.guest.toFixed(1);
+                tdGuest.style.textAlign = 'right';
+                tr.appendChild(tdGuest);
+                
+                tbody.appendChild(tr);
+            }
+            
+            // If no data, show message
+            if (tbody.children.length === 0) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.textContent = 'No data available';
+                td.colSpan = 4;
+                td.style.textAlign = 'center';
+                td.style.fontStyle = 'italic';
+                td.style.padding = '20px';
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+            }
+        }
+        
+        // Function to populate position hours table
+        function populatePositionHoursTable(positionHours) {
+            const table = document.getElementById('positionHoursTable');
+            if (!table) return;
+            
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+            
+            // Clear the table
+            tbody.innerHTML = '';
+            
+            // Get positions sorted by total hours (descending)
+            const sortedPositions = Object.keys(positionHours).sort((a, b) => 
+                positionHours[b].total - positionHours[a].total
+            );
+            
+            // Add each position to the table
+            for (const position of sortedPositions) {
+                const hours = positionHours[position];
+                
+                // Skip positions with 0 hours
+                if (hours.total === 0) continue;
+                
+                const tr = document.createElement('tr');
+                
+                // Position name
+                const tdPosition = document.createElement('td');
+                tdPosition.textContent = position;
+                tdPosition.style.fontWeight = 'bold';
+                tr.appendChild(tdPosition);
+                
+                // Total hours
+                const tdTotal = document.createElement('td');
+                tdTotal.textContent = hours.total.toFixed(1);
+                tdTotal.style.textAlign = 'right';
+                tdTotal.style.fontWeight = 'bold';
+                tr.appendChild(tdTotal);
+                
+                // East hours
+                const tdEast = document.createElement('td');
+                tdEast.textContent = hours.east.toFixed(1);
+                tdEast.style.textAlign = 'right';
+                if (hours.east > 0) {
+                    tdEast.className = 'loc-east';
+                }
+                tr.appendChild(tdEast);
+                
+                // RLH hours
+                const tdRlh = document.createElement('td');
+                tdRlh.textContent = hours.rlh.toFixed(1);
+                tdRlh.style.textAlign = 'right';
+                if (hours.rlh > 0) {
+                    tdRlh.className = 'loc-rlh';
+                }
+                tr.appendChild(tdRlh);
+                
+                // Bankside hours
+                const tdBankside = document.createElement('td');
+                tdBankside.textContent = hours.bankside.toFixed(1);
+                tdBankside.style.textAlign = 'right';
+                if (hours.bankside > 0) {
+                    tdBankside.className = 'loc-bankside';
+                }
+                tr.appendChild(tdBankside);
+                
+                tbody.appendChild(tr);
+            }
+            
+            // If no data, show message
+            if (tbody.children.length === 0) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.textContent = 'No data available';
+                td.colSpan = 5;
+                td.style.textAlign = 'center';
+                td.style.fontStyle = 'italic';
+                td.style.padding = '20px';
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+            }
+        }
+        
+        // Функция для проверки приблизительного совпадения цветов
+        function isSimilarColor(color1, color2) {
+            if (!color1 || !color2) return false;
+            
+            // Если точное совпадение
+            if (color1.toLowerCase() === color2.toLowerCase()) return true;
+            
+            // Проверяем приблизительное совпадение
+            try {
+                // Преобразуем цвета в RGB компоненты
+                const rgb1 = {
+                    r: parseInt(color1.substring(0, 2), 16),
+                    g: parseInt(color1.substring(2, 4), 16),
+                    b: parseInt(color1.substring(4, 6), 16)
+                };
+                
+                const rgb2 = {
+                    r: parseInt(color2.substring(0, 2), 16),
+                    g: parseInt(color2.substring(2, 4), 16),
+                    b: parseInt(color2.substring(4, 6), 16)
+                };
+                
+                // Вычисляем разницу между компонентами
+                const diff = {
+                    r: Math.abs(rgb1.r - rgb2.r),
+                    g: Math.abs(rgb1.g - rgb2.g),
+                    b: Math.abs(rgb1.b - rgb2.b)
+                };
+                
+                // Если разница меньше порогового значения, считаем цвета похожими
+                const threshold = 10;
+                return diff.r <= threshold && diff.g <= threshold && diff.b <= threshold;
+            } catch (e) {
+                console.error("Ошибка при сравнении цветов:", e);
+                return false;
+            }
+        }
+        
+        // Функция для получения цвета ячейки для определенного дня
+        function getCellColorForDay(staffName, dayIndex, headerInfo) {
+            if (!window.lastLoadedData || !window.excelCellColors) return null;
+            
+            const data = window.lastLoadedData;
+            
+            // Находим строку с сотрудником
+            let staffRow = -1;
+            for (let i = 0; i < data.length; i++) {
+                if (!data[i] || !data[i][0] || typeof data[i][0] !== 'string') continue;
+                
+                const rowStaffName = data[i][0].trim();
+                if (rowStaffName === staffName || rowStaffName.includes(staffName) || staffName.includes(rowStaffName)) {
+                    staffRow = i;
+                    break;
+                }
+            }
+            
+            if (staffRow === -1) return null;
+            
+            // Получаем колонку для нужного дня
+            const dayColumn = headerInfo.dayColumns[dayIndex];
+            if (!dayColumn) return null;
+            
+            // Вычисляем адрес ячейки в формате Excel (например, A1, B2)
+            const colLetter = String.fromCharCode(65 + dayColumn); // A, B, C, ...
+            const rowNumber = staffRow + 1; // Excel начинает с 1
+            const cellAddress = `${colLetter}${rowNumber}`;
+            
+            // Получаем цвет из извлеченных цветов ячеек
+            if (window.excelCellColors[cellAddress]) {
+                return window.excelCellColors[cellAddress];
+            }
+            
+            return null;
+        }
+    </script>
+</body>
+</html>
