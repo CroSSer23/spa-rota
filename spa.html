@@ -289,6 +289,196 @@
                 padding: 0;
             }
         }
+        
+        /* Адаптивные стили для мобильных устройств */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                width: 100%;
+                padding: 0;
+            }
+            
+            .tabs {
+                flex-wrap: wrap;
+            }
+            
+            .tab {
+                margin-bottom: 5px;
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+            
+            .data-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+                font-size: 14px;
+            }
+            
+            .data-table th, .data-table td {
+                padding: 6px;
+            }
+            
+            /* Фиксируем первую колонку с именами сотрудников */
+            .data-table th:first-child, .data-table td:first-child {
+                position: sticky;
+                left: 0;
+                background-color: #fff;
+                z-index: 1;
+                box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            }
+            
+            .data-table th:first-child {
+                background-color: #f2f2f2;
+            }
+            
+            /* Стили для четных строк */
+            .data-table tr:nth-child(even) td:first-child {
+                background-color: #f9f9f9;
+            }
+            
+            /* Стили для наведения */
+            .data-table tr:hover td:first-child {
+                background-color: #f1f1f1;
+            }
+            
+            /* Уменьшаем размер шрифта для имен сотрудников */
+            .position-label {
+                font-size: 12px;
+            }
+            
+            /* Стили для кнопок */
+            .print-btn, .file-upload, .lara-juanita-btn {
+                width: 100%;
+                margin-bottom: 10px;
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+            
+            /* Стили для легенды */
+            .legend {
+                display: flex;
+                flex-wrap: wrap;
+            }
+            
+            .legend-item {
+                margin-bottom: 8px;
+                font-size: 12px;
+                width: 50%;
+            }
+            
+            /* Стили для аналитических таблиц */
+            #staffHoursTable, #locationHoursTable, #positionHoursTable {
+                font-size: 13px;
+            }
+        }
+        
+        /* Стили для очень маленьких экранов */
+        @media screen and (max-width: 480px) {
+            .tab {
+                font-size: 12px;
+                padding: 6px 8px;
+            }
+            
+            .data-table {
+                font-size: 12px;
+            }
+            
+            .data-table th, .data-table td {
+                padding: 4px;
+            }
+            
+            .legend-item {
+                width: 100%;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            h2 {
+                font-size: 20px;
+            }
+            
+            h3 {
+                font-size: 18px;
+            }
+        }
+        
+        /* Стили для кнопки переключения режимов */
+        .mobile-controls {
+            margin-bottom: 15px;
+        }
+        
+        .toggle-view-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        .toggle-view-btn:hover {
+            background-color: #45a049;
+        }
+        
+        /* Стили для принудительного десктопного вида */
+        .force-desktop-view .data-table {
+            display: table;
+            width: 100%;
+            overflow-x: visible;
+            white-space: normal;
+        }
+        
+        .force-desktop-view .data-table th:first-child,
+        .force-desktop-view .data-table td:first-child {
+            position: static;
+            box-shadow: none;
+        }
+        
+        /* Стили для мобильной навигации */
+        .mobile-tab-navigation {
+            display: none;
+            margin-bottom: 15px;
+        }
+        
+        .mobile-tab-select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            font-size: 16px;
+        }
+        
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .mobile-tab-navigation {
+                display: block;
+            }
+            
+            .tabs {
+                display: none;
+            }
+            
+            .force-desktop-view .tabs {
+                display: flex;
+                flex-wrap: wrap;
+            }
+            
+            .force-desktop-view .mobile-tab-navigation {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -298,11 +488,25 @@
         <div id="statusMessage" class="status"></div>
         <div id="loading" class="loading">Loading data</div>
         
+        <div class="mobile-controls">
+            <button id="toggleMobileView" class="toggle-view-btn">Toggle Mobile/Desktop View</button>
+        </div>
+        
         <div class="controls">
             <label for="fileInput" class="file-upload">Upload Excel File</label>
             <input type="file" id="fileInput" class="file-input" accept=".xlsx, .xls">
-            <button class="print-btn" onclick="window.print()">Print Schedule</button>
-            <button class="lara-juanita-btn" onclick="loadDefaultFile()">Button for Lara and Juanita</button>
+            <button id="printBtn" class="print-btn">Print</button>
+            <button id="toggleDebugBtn" class="print-btn">Show Debug Information</button>
+            <button id="laraJuanitaBtn" class="lara-juanita-btn">Lara & Juanita</button>
+        </div>
+        
+        <div class="mobile-tab-navigation">
+            <select id="mobileTabSelect" class="mobile-tab-select">
+                <option value="east">EAST</option>
+                <option value="rlh">RLH</option>
+                <option value="bankside">BANKSIDE</option>
+                <option value="analytics">Analytics</option>
+            </select>
         </div>
         
         <div class="tabs">
@@ -651,7 +855,21 @@
                 document.getElementById("analytics-tab").style.display = "block";
             }
             
-            evt.currentTarget.className += " active";
+            // Add active class to the clicked tab
+            if (evt) {
+                evt.currentTarget.className += " active";
+            } else {
+                // Если событие не передано, находим соответствующую вкладку и активируем её
+                for (let i = 0; i < tabs.length; i++) {
+                    if (tabs[i].getAttribute("onclick").includes(locationName)) {
+                        tabs[i].className += " active";
+                        break;
+                    }
+                }
+            }
+            
+            // Синхронизируем мобильный селект
+            document.getElementById('mobileTabSelect').value = locationName;
         }
         
         // Функция для обновления заголовков таблицы
@@ -3056,6 +3274,103 @@
             // В остальных случаях возвращаем как есть
             return hours;
         }
+        
+        // Функция для переключения между мобильным и десктопным видом
+        document.getElementById('toggleMobileView').addEventListener('click', function() {
+            document.body.classList.toggle('force-desktop-view');
+            
+            if (document.body.classList.contains('force-desktop-view')) {
+                this.textContent = 'Switch to Mobile View';
+            } else {
+                this.textContent = 'Switch to Desktop View';
+            }
+        });
+        
+        // Определяем, какой вид использовать по умолчанию
+        function setInitialViewMode() {
+            if (window.innerWidth <= 768) {
+                document.getElementById('toggleMobileView').textContent = 'Switch to Desktop View';
+            } else {
+                document.getElementById('toggleMobileView').textContent = 'Switch to Mobile View';
+                document.body.classList.add('force-desktop-view');
+            }
+        }
+        
+        // Вызываем функцию при загрузке страницы
+        window.addEventListener('load', setInitialViewMode);
+        
+        // Обработчик для мобильной навигации по вкладкам
+        document.getElementById('mobileTabSelect').addEventListener('change', function() {
+            const tabId = this.value;
+            openTab(null, tabId);
+        });
+        
+        // Обновляем функцию openTab для синхронизации с мобильным селектом
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            
+            tablinks = document.getElementsByClassName("tab");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            
+            document.getElementById(tabName).style.display = "block";
+            
+            if (evt) {
+                evt.currentTarget.className += " active";
+            } else {
+                // Если событие не передано (вызов из селекта), находим соответствующую вкладку и активируем её
+                const tabs = document.getElementsByClassName("tab");
+                for (i = 0; i < tabs.length; i++) {
+                    if (tabs[i].getAttribute("onclick").includes(tabName)) {
+                        tabs[i].className += " active";
+                        break;
+                    }
+                }
+            }
+            
+            // Синхронизируем мобильный селект
+            document.getElementById('mobileTabSelect').value = tabName;
+        }
+        
+        // Вызываем функцию при загрузке страницы
+        window.addEventListener('load', setInitialViewMode);
+        
+        // Обработчики событий для кнопок
+        document.addEventListener('DOMContentLoaded', function() {
+            // Обработчик для кнопки печати
+            document.getElementById('printBtn').addEventListener('click', function() {
+                window.print();
+            });
+            
+            // Обработчик для кнопки отладочной информации
+            document.getElementById('toggleDebugBtn').addEventListener('click', function() {
+                const debugInfo = document.getElementById('debugInfo');
+                if (debugInfo.style.display === 'none') {
+                    debugInfo.style.display = 'block';
+                    this.textContent = 'Hide Debug Information';
+                } else {
+                    debugInfo.style.display = 'none';
+                    this.textContent = 'Show Debug Information';
+                }
+            });
+            
+            // Обработчик для кнопки Lara & Juanita
+            document.getElementById('laraJuanitaBtn').addEventListener('click', function() {
+                loadDefaultFile();
+            });
+            
+            // Обработчик для мобильной навигации по вкладкам
+            document.getElementById('mobileTabSelect').addEventListener('change', function() {
+                const locationName = this.value;
+                openLocation(null, locationName);
+            });
+        });
     </script>
 </body>
 </html>
