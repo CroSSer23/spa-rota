@@ -248,9 +248,67 @@
             margin-bottom: 20px;
         }
         
-        .file-input {
+        /* Стили для контейнера загрузки файла */
+        .file-input-container {
+            position: relative;
+            display: inline-block;
+            margin-right: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .file-input-container input[type="file"] {
             position: absolute;
-            left: -9999px;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .file-input-container label {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            display: inline-block;
+        }
+        
+        .file-input-container label:hover {
+            background-color: #45a049;
+        }
+        
+        /* Добавляем эффект при нажатии для кнопки выбора файла */
+        .file-input-container label:active {
+            background-color: #3d8b40;
+            transform: translateY(1px);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2) inset;
+        }
+        
+        /* Добавляем эффект при нажатии для кнопки Print */
+        .print-btn:active {
+            background-color: #3d8b40;
+            transform: translateY(1px);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2) inset;
+        }
+        
+        /* Восстанавливаем стиль для кнопки Lara & Juanita */
+        #laraJuanitaBtn {
+            background-color: #e91e63;
+        }
+        
+        #laraJuanitaBtn:hover {
+            background-color: #c2185b;
+        }
+        
+        /* Добавляем эффект при нажатии для кнопки Lara & Juanita */
+        #laraJuanitaBtn:active {
+            background-color: #ad1457;
+            transform: translateY(1px);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2) inset;
         }
         
         .status {
@@ -486,18 +544,19 @@
         <h1>SPA Schedule</h1>
         
         <div id="statusMessage" class="status"></div>
-        <div id="loading" class="loading">Loading data</div>
+        <div id="loading" style="display: none;">Loading...</div>
         
         <div class="mobile-controls">
             <button id="toggleMobileView" class="toggle-view-btn">Toggle Mobile/Desktop View</button>
         </div>
         
         <div class="controls">
-            <label for="fileInput" class="file-upload">Upload Excel File</label>
-            <input type="file" id="fileInput" class="file-input" accept=".xlsx, .xls">
+            <div class="file-input-container">
+                <input type="file" id="fileInput" accept=".xlsx, .xls" />
+                <label for="fileInput">Choose Excel File</label>
+            </div>
             <button id="printBtn" class="print-btn">Print</button>
-            <button id="toggleDebugBtn" class="print-btn">Show Debug Information</button>
-            <button id="laraJuanitaBtn" class="lara-juanita-btn">Lara & Juanita</button>
+            <button id="laraJuanitaBtn" class="print-btn">Lara & Juanita</button>
         </div>
         
         <div class="mobile-tab-navigation">
@@ -1338,6 +1397,46 @@
             
             // Calculate and display analytics
             calculateAndDisplayAnalytics(allStaffByCategory, guestStaff, headerInfo);
+            
+            // Обновляем активную вкладку для немедленного отображения данных
+            refreshActiveTab();
+        }
+        
+        // Функция для обновления активной вкладки
+        function refreshActiveTab() {
+            // Находим активную вкладку
+            const activeTab = document.querySelector('.tab.active');
+            if (activeTab) {
+                // Получаем имя локации из атрибута onclick
+                const onclickAttr = activeTab.getAttribute('onclick');
+                if (onclickAttr) {
+                    const match = onclickAttr.match(/openLocation\(event,\s*['"]([^'"]+)['"]\)/);
+                    if (match && match[1]) {
+                        // Вызываем openLocation с текущей активной вкладкой
+                        openLocation(null, match[1]);
+                        // Восстанавливаем класс active для вкладки
+                        activeTab.className += " active";
+                    }
+                }
+            } else {
+                // Если активной вкладки нет, открываем первую вкладку по умолчанию
+                const firstTab = document.querySelector('.tab');
+                if (firstTab) {
+                    firstTab.click();
+                }
+            }
+            
+            // Обновляем мобильный селект, если он существует
+            const mobileSelect = document.getElementById('mobileTabSelect');
+            if (mobileSelect) {
+                const activeTabName = document.querySelector('.tab.active')?.textContent.trim();
+                for (let i = 0; i < mobileSelect.options.length; i++) {
+                    if (mobileSelect.options[i].textContent.trim() === activeTabName) {
+                        mobileSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
         }
         
         // Функция для нахождения информации о днях недели и датах
@@ -3345,19 +3444,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Обработчик для кнопки печати
             document.getElementById('printBtn').addEventListener('click', function() {
-                window.print();
-            });
-            
-            // Обработчик для кнопки отладочной информации
-            document.getElementById('toggleDebugBtn').addEventListener('click', function() {
-                const debugInfo = document.getElementById('debugInfo');
-                if (debugInfo.style.display === 'none') {
-                    debugInfo.style.display = 'block';
-                    this.textContent = 'Hide Debug Information';
-                } else {
-                    debugInfo.style.display = 'none';
-                    this.textContent = 'Show Debug Information';
-                }
+                printAllTabs();
             });
             
             // Обработчик для кнопки Lara & Juanita
@@ -3371,6 +3458,119 @@
                 openLocation(null, locationName);
             });
         });
+    </script>
+    
+    <script>
+        // Функция для печати всех вкладок на отдельных листах
+        function printAllTabs() {
+            // Получаем все вкладки
+            const tabs = document.getElementsByClassName("tab");
+            const tabNames = [];
+            
+            // Собираем имена всех вкладок
+            for (let i = 0; i < tabs.length; i++) {
+                const onclickAttr = tabs[i].getAttribute("onclick");
+                if (onclickAttr) {
+                    const match = onclickAttr.match(/openLocation\(event,\s*['"]([^'"]+)['"]\)/);
+                    if (match && match[1]) {
+                        tabNames.push(match[1]);
+                    }
+                }
+            }
+            
+            // Создаем новое окно для печати
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write('<html><head><title>SPA Schedule Print</title>');
+            
+            // Копируем все стили из текущего документа
+            const styles = document.getElementsByTagName('style');
+            for (let i = 0; i < styles.length; i++) {
+                printWindow.document.write(styles[i].outerHTML);
+            }
+            
+            // Добавляем стили для печати
+            printWindow.document.write(`
+                <style>
+                    @media print {
+                        .print-page {
+                            page-break-after: always;
+                            margin-bottom: 30px;
+                        }
+                        
+                        .no-print {
+                            display: none !important;
+                        }
+                        
+                        body {
+                            padding: 20px;
+                            font-family: Arial, sans-serif;
+                        }
+                        
+                        h2 {
+                            margin-top: 0;
+                            padding-top: 0;
+                        }
+                        
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                        }
+                        
+                        th, td {
+                            border: 1px solid #ddd;
+                            padding: 8px;
+                            text-align: center;
+                        }
+                        
+                        th {
+                            background-color: #f2f2f2;
+                        }
+                    }
+                </style>
+            `);
+            
+            printWindow.document.write('</head><body>');
+            
+            // Для каждой вкладки копируем её содержимое
+            for (let i = 0; i < tabNames.length; i++) {
+                const tabName = tabNames[i];
+                // Используем правильный ID для вкладки
+                const tabContentId = tabName + "-tab";
+                const tabContent = document.getElementById(tabContentId);
+                
+                if (tabContent) {
+                    // Создаем контейнер для страницы с классом print-page для разрыва страницы
+                    printWindow.document.write('<div class="print-page">');
+                    
+                    // Добавляем заголовок вкладки
+                    const tabTitle = Array.from(tabs).find(tab => {
+                        const onclick = tab.getAttribute("onclick");
+                        return onclick && onclick.includes(tabName);
+                    })?.textContent || tabName.toUpperCase();
+                    
+                    printWindow.document.write('<h2>' + tabTitle + '</h2>');
+                    
+                    // Копируем содержимое вкладки
+                    printWindow.document.write(tabContent.innerHTML);
+                    
+                    // Закрываем контейнер страницы
+                    printWindow.document.write('</div>');
+                }
+            }
+            
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            
+            // Ждем загрузки содержимого и запускаем печать
+            printWindow.onload = function() {
+                printWindow.focus();
+                printWindow.print();
+                // Закрываем окно после печати
+                printWindow.onafterprint = function() {
+                    printWindow.close();
+                };
+            };
+        }
     </script>
 </body>
 </html>
