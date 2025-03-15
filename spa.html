@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Расписание СПА</title>
+    <title>SPA Schedule</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body {
@@ -195,6 +195,22 @@
             margin-right: 10px;
         }
         
+        .lara-juanita-btn {
+            background-color: #e91e63;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 20px;
+            margin-right: 10px;
+        }
+        
+        .lara-juanita-btn:hover {
+            background-color: #c2185b;
+        }
+        
         .week-selector {
             display: flex;
             justify-content: center;
@@ -224,23 +240,6 @@
         
         .print-btn:hover, .file-upload:hover {
             background-color: #45a049;
-        }
-        
-        .lara-juanita-btn {
-            padding: 10px 20px;
-            background-color: #e91e63;
-            color: white;
-            border: 1px solid #c2185b;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-left: 10px;
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-            display: inline-block;
-        }
-        
-        .lara-juanita-btn:hover {
-            background-color: #c2185b;
         }
         
         .controls {
@@ -574,16 +573,6 @@
     </div>
 
     <script>
-        // Добавляем обработчик события загрузки страницы
-        document.addEventListener('DOMContentLoaded', function() {
-            // Добавляем обработчик события для input file
-            document.getElementById('fileInput').addEventListener('change', function(e) {
-                if (this.files.length > 0) {
-                    handleExcelFile(this.files[0]);
-                }
-            });
-        });
-        
         // Configuration for staff
         const staffConfig = {
             seniorSupervisors: ["Larysa", "Umarin"],
@@ -591,7 +580,7 @@
             eastReceptionists: ["Larysa", "Ioana", "Vadym", "Fatimah"],
             eastAttendance: ["Alex", "Nandini", "Sakshi", "Dhruva", "Harshie", "Rajvee", "Apoorva"],
             eastTherapists: ["Agata", "Carmilla", "Andrea", "Simone", "Isabella", "Prem", "Siobhan", "Chris", "Sophie", "Iskra"],
-            rlhReceptionists: ["Tanvi"],
+            rlhReceptionists: ["Tanvi", "Umarin"],
             rlhAttendance: ["Veska", "Maksim", "Malcan", "Dipali", "Arpit", "Rashmi"],
             rlhTherapists: ["Umarin", "Shiv", "Bea", "Christine", "Guido", "Sara", "Mihaela", "Ashley", "Aldona"],
             banksideReceptionists: ["Aditya", "Naveen"],
@@ -602,7 +591,8 @@
         const locationColors = {
             "East": "93c47d", // Green
             "RLH": "4a86e8",  // Blue
-            "Bankside": "b7b7b7" // Gray
+            "Bankside": "b7b7b7", // Gray
+            "Sick": "ff0000" // Red
         };
         
         // Сопоставление для приглашенных сотрудников
@@ -711,81 +701,6 @@
             return false;
         }
         
-        // Функция для загрузки файла spa.xlsx по умолчанию (для Лары и Хуаниты)
-        function loadDefaultFile() {
-            try {
-                document.getElementById('loading').style.display = 'block';
-                document.getElementById('statusMessage').className = 'status';
-                document.getElementById('statusMessage').textContent = 'Loading default file...';
-                
-                console.log("Loading default spa.xlsx file...");
-                
-                // Создаем объект XMLHttpRequest
-                const xhr = new XMLHttpRequest();
-                xhr.open('GET', 'spa.xlsx', true);
-                xhr.responseType = 'arraybuffer';
-                
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        const data = new Uint8Array(xhr.response);
-                        const workbook = XLSX.read(data, { type: 'array', cellStyles: true });
-                        
-                        // Get the first sheet
-                        const firstSheetName = workbook.SheetNames[0];
-                        const worksheet = workbook.Sheets[firstSheetName];
-                        
-                        console.log("Default sheet loaded:", firstSheetName);
-                        
-                        // Extract cell colors
-                        const cellColors = extractCellColors(worksheet);
-                        
-                        // Save colors in a global variable for access from other functions
-                        window.excelCellColors = cellColors;
-                        
-                        // Convert to JSON
-                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: null, cellStyles: true });
-                        
-                        console.log("Default data converted to JSON, rows:", jsonData.length);
-                        
-                        // Analyze data structure
-                        displayData(jsonData);
-                        
-                        document.getElementById('statusMessage').className = 'status success';
-                        document.getElementById('statusMessage').textContent = 'Default data successfully loaded!';
-                    } else {
-                        console.error('Error loading file:', xhr.statusText);
-                        document.getElementById('statusMessage').className = 'status error';
-                        document.getElementById('statusMessage').textContent = 'Error loading file: ' + xhr.statusText;
-                        
-                        // Если не удалось загрузить файл, активируем стандартный диалог выбора файла
-                        document.getElementById('fileInput').click();
-                    }
-                    document.getElementById('loading').style.display = 'none';
-                };
-                
-                xhr.onerror = function() {
-                    console.error('Network error while loading file');
-                    document.getElementById('statusMessage').className = 'status error';
-                    document.getElementById('statusMessage').textContent = 'Network error while loading file';
-                    document.getElementById('loading').style.display = 'none';
-                    
-                    // Если не удалось загрузить файл, активируем стандартный диалог выбора файла
-                    document.getElementById('fileInput').click();
-                };
-                
-                xhr.send();
-                
-            } catch (error) {
-                console.error('Error processing default file:', error);
-                document.getElementById('statusMessage').className = 'status error';
-                document.getElementById('statusMessage').textContent = 'Error: ' + error.message;
-                document.getElementById('loading').style.display = 'none';
-                
-                // Если произошла ошибка, активируем стандартный диалог выбора файла
-                document.getElementById('fileInput').click();
-            }
-        }
-        
         // Функция для обработки Excel-файла
         async function handleExcelFile(file) {
             try {
@@ -886,6 +801,9 @@
                 banksideAttendance: []
             };
             
+            // Создаем объект для хранения всех найденных сотрудников и их расписаний
+            const allFoundStaff = {};
+            
             // Сначала ищем всех сотрудников в данных
             for (let i = 0; i < data.length; i++) {
                 if (!data[i] || !data[i][0] || typeof data[i][0] !== 'string') continue;
@@ -896,180 +814,303 @@
                 if (rowStaffName === "" || 
                     rowStaffName.toUpperCase().includes("RECEPTION") || 
                     rowStaffName.toUpperCase().includes("ATTENDANCE") || 
-                    rowStaffName.toUpperCase().includes("THERAPISTS") ||
-                    rowStaffName.includes("(")) {
+                    rowStaffName.toUpperCase().includes("THERAPISTS")) {
                     continue;
                 }
                 
-                // Проверяем, к какой категории относится сотрудник
-                let staffCategory = null;
-                let currentSection = "";
-                
-                // Определяем текущую секцию
-                for (let k = i; k >= 0; k--) {
-                    if (!data[k] || !data[k][0] || typeof data[k][0] !== 'string') continue;
-                    
-                    const sectionMarker = data[k][0].trim().toUpperCase();
-                    if (sectionMarker.includes("EAST RECEPTION")) {
-                        currentSection = "eastAdmins";
-                        break;
-                    } else if (sectionMarker.includes("EAST ATTENDANCE")) {
-                        currentSection = "eastAttendance";
-                        break;
-                    } else if (sectionMarker.includes("EAST THERAPISTS") || sectionMarker.includes("EAST THER")) {
-                        currentSection = "eastTherapists";
-                        break;
-                    } else if (sectionMarker.includes("RLH RECEPTION")) {
-                        currentSection = "rlhAdmins";
-                        break;
-                    } else if (sectionMarker.includes("RLH ATTENDANCE") || sectionMarker.includes("RLH ATTEND")) {
-                        currentSection = "rlhAttendance";
-                        break;
-                    } else if (sectionMarker.includes("RLH THERAPISTS") || sectionMarker.includes("RLH THERAP") || sectionMarker.includes("RLH THER")) {
-                        currentSection = "rlhTherapists";
-                        break;
-                    } else if (sectionMarker.includes("BANKSIDE RECEPTION") || sectionMarker.includes("BANKSIDE R")) {
-                        currentSection = "banksideAdmins";
-                        break;
-                    } else if (sectionMarker.includes("BANKSIDE ATTENDANCE") || (sectionMarker.includes("BANKSIDE") && !sectionMarker.includes("RECEPTION"))) {
-                        currentSection = "banksideAttendance";
-                        break;
-                    }
+                // Извлекаем базовое имя сотрудника (без информации в скобках)
+                let baseStaffName = rowStaffName;
+                const bracketIndex = rowStaffName.indexOf('(');
+                if (bracketIndex > 0) {
+                    baseStaffName = rowStaffName.substring(0, bracketIndex).trim();
                 }
                 
-                // Если не удалось определить секцию, пропускаем
-                if (!currentSection) continue;
+                // Собираем расписание для всех дней
+                const schedule = [];
                 
-                // Проверяем, входит ли сотрудник в соответствующий список
-                let isInStaffList = false;
-                let staffList = [];
-                
-                switch (currentSection) {
-                    case "eastAdmins":
-                        staffList = staffConfig.eastReceptionists;
-                        break;
-                    case "eastAttendance":
-                        staffList = staffConfig.eastAttendance;
-                        break;
-                    case "eastTherapists":
-                        staffList = staffConfig.eastTherapists;
-                        break;
-                    case "rlhAdmins":
-                        staffList = staffConfig.rlhReceptionists;
-                        break;
-                    case "rlhAttendance":
-                        staffList = staffConfig.rlhAttendance;
-                        break;
-                    case "rlhTherapists":
-                        staffList = staffConfig.rlhTherapists;
-                        break;
-                    case "banksideAdmins":
-                        staffList = staffConfig.banksideReceptionists;
-                        break;
-                    case "banksideAttendance":
-                        staffList = staffConfig.banksideAttendance;
-                        break;
-                }
-                
-                for (const name of staffList) {
-                    if (rowStaffName.includes(name) || name.includes(rowStaffName)) {
-                        isInStaffList = true;
-                        break;
-                    }
-                }
-                
-                // Если сотрудник входит в список или это специальный случай
-                if (isInStaffList) {
-                    // Собираем расписание для всех дней
-                    const schedule = [];
-                    
-                    for (const col of headerInfo.dayColumns) {
-                        if (col < data[i].length) {
-                            schedule.push(data[i][col] !== null ? String(data[i][col]) : "");
+                for (let j = 0; j < headerInfo.dayColumns.length; j++) {
+                    const col = headerInfo.dayColumns[j];
+                    if (col < data[i].length) {
+                        // Получаем значение ячейки и преобразуем его в строку
+                        let cellValue = data[i][col];
+                        
+                        // Проверяем цвет ячейки
+                        let isSick = false;
+                        const colLetter = String.fromCharCode(65 + col);
+                        const rowNumber = i + 1;
+                        const cellAddress = `${colLetter}${rowNumber}`;
+                        
+                        if (window.excelCellColors && window.excelCellColors[cellAddress]) {
+                            const cellColor = window.excelCellColors[cellAddress].toLowerCase();
+                            
+                            // Проверяем, является ли цвет красным (#FF0000)
+                            if (cellColor === locationColors.Sick.toLowerCase() || isSimilarColor(cellColor, locationColors.Sick)) {
+                                isSick = true;
+                                console.log(`Найдена ячейка с красным фоном (${cellColor}) в ${cellAddress} для ${rowStaffName}, день ${j}`);
+                            }
+                        }
+                        
+                        // Если ячейка красная, устанавливаем значение "sick" независимо от текстового содержимого
+                        if (isSick) {
+                            schedule.push("sick");
+                        }
+                        // Иначе используем текстовое значение ячейки
+                        else if (cellValue !== null && cellValue !== undefined) {
+                            // Преобразуем в строку и сохраняем
+                            schedule.push(String(cellValue));
                         } else {
                             schedule.push("");
                         }
+                    } else {
+                        schedule.push("");
+                    }
+                }
+                
+                // Сохраняем сотрудника и его расписание
+                allFoundStaff[rowStaffName] = {
+                    name: rowStaffName,
+                    baseName: baseStaffName, // Сохраняем базовое имя для сопоставления
+                    schedule: schedule,
+                    row: i
+                };
+                
+                // Проверяем цвета ячеек для определения локаций
+                if (window.excelCellColors) {
+                    const shifts = [];
+                    
+                    for (let j = 0; j < headerInfo.dayColumns.length; j++) {
+                        const col = headerInfo.dayColumns[j];
+                        const colLetter = String.fromCharCode(65 + col);
+                        const rowNumber = i + 1;
+                        const cellAddress = `${colLetter}${rowNumber}`;
+                        
+                        if (window.excelCellColors[cellAddress]) {
+                            const cellColor = window.excelCellColors[cellAddress].toLowerCase();
+                            let shiftLocation = null;
+                            
+                            // Определяем локацию по цвету
+                            if (cellColor === locationColors.East.toLowerCase()) {
+                                shiftLocation = "East";
+                            } else if (cellColor === locationColors.RLH.toLowerCase()) {
+                                shiftLocation = "RLH";
+                            } else if (cellColor === locationColors.Bankside.toLowerCase()) {
+                                shiftLocation = "Bankside";
+                            } else if (isSimilarColor(cellColor, locationColors.East)) {
+                                shiftLocation = "East";
+                            } else if (isSimilarColor(cellColor, locationColors.RLH)) {
+                                shiftLocation = "RLH";
+                            } else if (isSimilarColor(cellColor, locationColors.Bankside)) {
+                                shiftLocation = "Bankside";
+                            }
+                            
+                            if (shiftLocation) {
+                                shifts.push({
+                                    day: j,
+                                    location: shiftLocation
+                                });
+                            }
+                        }
                     }
                     
-                    // Добавляем сотрудника в соответствующую категорию
-                    allStaffByCategory[currentSection].push({
-                        name: rowStaffName,
-                        schedule: schedule
-                    });
+                    if (shifts.length > 0) {
+                        allFoundStaff[rowStaffName].shifts = shifts;
+                    }
                 }
             }
             
-            // Дополнительно проверяем, есть ли в данных сотрудники из конфигурации, которые не были найдены
-            // Это особенно важно для Tanvi и терапевтов RLH
+            // Теперь распределяем сотрудников по категориям
+            for (const staffName of Object.keys(allFoundStaff)) {
+                const staff = allFoundStaff[staffName];
+                const baseStaffName = staff.baseName;
+                
+                // Проверяем, к каким категориям может относиться сотрудник
+                
+                // East Receptionists
+                if (staffConfig.eastReceptionists.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName))) {
+                    // Проверяем, не добавлен ли уже этот сотрудник
+                    if (!allStaffByCategory.eastAdmins.some(s => s.baseName === staff.baseName || 
+                        (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                        allStaffByCategory.eastAdmins.push(staff);
+                    }
+                }
+                
+                // East Attendance
+                if (staffConfig.eastAttendance.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName))) {
+                    // Проверяем, не добавлен ли уже этот сотрудник
+                    if (!allStaffByCategory.eastAttendance.some(s => s.baseName === staff.baseName || 
+                        (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                        allStaffByCategory.eastAttendance.push(staff);
+                    }
+                }
+                
+                // East Therapists
+                if (staffConfig.eastTherapists.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName))) {
+                    // Проверяем, не добавлен ли уже этот сотрудник
+                    if (!allStaffByCategory.eastTherapists.some(s => s.baseName === staff.baseName || 
+                        (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                        allStaffByCategory.eastTherapists.push(staff);
+                    }
+                }
+                
+                // RLH Receptionists
+                if (staffConfig.rlhReceptionists.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName))) {
+                    // Проверяем, не добавлен ли уже этот сотрудник
+                    if (!allStaffByCategory.rlhAdmins.some(s => s.baseName === staff.baseName || 
+                        (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                        allStaffByCategory.rlhAdmins.push(staff);
+                    }
+                }
+                
+                // RLH Attendance
+                if (staffConfig.rlhAttendance.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName))) {
+                    // Проверяем, не добавлен ли уже этот сотрудник
+                    if (!allStaffByCategory.rlhAttendance.some(s => s.baseName === staff.baseName || 
+                        (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                        allStaffByCategory.rlhAttendance.push(staff);
+                    }
+                }
+                
+                // RLH Therapists
+                if (staffConfig.rlhTherapists.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName))) {
+                    // Проверяем, не добавлен ли уже этот сотрудник
+                    if (!allStaffByCategory.rlhTherapists.some(s => s.baseName === staff.baseName || 
+                        (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                        allStaffByCategory.rlhTherapists.push(staff);
+                    }
+                }
+                
+                // Bankside Receptionists
+                if (staffConfig.banksideReceptionists.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName))) {
+                    // Проверяем, не добавлен ли уже этот сотрудник
+                    if (!allStaffByCategory.banksideAdmins.some(s => s.baseName === staff.baseName || 
+                        (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                        allStaffByCategory.banksideAdmins.push(staff);
+                    }
+                }
+                
+                // Bankside Attendance
+                if (staffConfig.banksideAttendance.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName))) {
+                    // Проверяем, не добавлен ли уже этот сотрудник
+                    if (!allStaffByCategory.banksideAttendance.some(s => s.baseName === staff.baseName || 
+                        (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                        allStaffByCategory.banksideAttendance.push(staff);
+                    }
+                }
+                
+                // Проверяем, есть ли у сотрудника смены в других локациях
+                if (allFoundStaff[staffName].shifts) {
+                    const shifts = allFoundStaff[staffName].shifts;
+                    const locations = new Set(shifts.map(shift => shift.location));
+                    const staff = allFoundStaff[staffName];
+                    const baseStaffName = staff.baseName;
+                    
+                    // Если у сотрудника есть смены в East, добавляем его в соответствующую категорию
+                    if (locations.has("East")) {
+                        // Определяем, в какую категорию добавить сотрудника
+                        if (staffConfig.eastReceptionists.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) && 
+                            !allStaffByCategory.eastAdmins.some(s => s.baseName === staff.baseName || 
+                            (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                            allStaffByCategory.eastAdmins.push(staff);
+                        } else if (staffConfig.eastAttendance.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) && 
+                            !allStaffByCategory.eastAttendance.some(s => s.baseName === staff.baseName || 
+                            (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                            allStaffByCategory.eastAttendance.push(staff);
+                        } else if (staffConfig.eastTherapists.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) && 
+                            !allStaffByCategory.eastTherapists.some(s => s.baseName === staff.baseName || 
+                            (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                            allStaffByCategory.eastTherapists.push(staff);
+                        }
+                    }
+                    
+                    // Если у сотрудника есть смены в RLH, добавляем его в соответствующую категорию
+                    if (locations.has("RLH")) {
+                        // Определяем, в какую категорию добавить сотрудника
+                        if (staffConfig.rlhReceptionists.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) && 
+                            !allStaffByCategory.rlhAdmins.some(s => s.baseName === staff.baseName || 
+                            (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                            allStaffByCategory.rlhAdmins.push(staff);
+                        } else if (staffConfig.rlhAttendance.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) && 
+                            !allStaffByCategory.rlhAttendance.some(s => s.baseName === staff.baseName || 
+                            (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                            allStaffByCategory.rlhAttendance.push(staff);
+                        } else if (staffConfig.rlhTherapists.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) && 
+                            !allStaffByCategory.rlhTherapists.some(s => s.baseName === staff.baseName || 
+                            (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                            allStaffByCategory.rlhTherapists.push(staff);
+                        }
+                    }
+                    
+                    // Если у сотрудника есть смены в Bankside, добавляем его в соответствующую категорию
+                    if (locations.has("Bankside")) {
+                        // Определяем, в какую категорию добавить сотрудника
+                        if (staffConfig.banksideReceptionists.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) && 
+                            !allStaffByCategory.banksideAdmins.some(s => s.baseName === staff.baseName || 
+                            (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                            allStaffByCategory.banksideAdmins.push(staff);
+                        } else if (staffConfig.banksideAttendance.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) && 
+                            !allStaffByCategory.banksideAttendance.some(s => s.baseName === staff.baseName || 
+                            (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                            allStaffByCategory.banksideAttendance.push(staff);
+                        }
+                    }
+                }
+            }
             
-            // Проверяем Tanvi
-            if (allStaffByCategory.rlhAdmins.findIndex(staff => staff.name.includes("Tanvi")) === -1) {
-                // Ищем Tanvi в данных
-                for (let i = 0; i < data.length; i++) {
-                    if (!data[i] || !data[i][0] || typeof data[i][0] !== 'string') continue;
-                    
-                    const rowStaffName = data[i][0].trim();
-                    
-                    if (rowStaffName.includes("Tanvi")) {
-                        // Собираем расписание для всех дней
-                        const schedule = [];
-                        
-                        for (const col of headerInfo.dayColumns) {
-                            if (col < data[i].length) {
-                                schedule.push(data[i][col] !== null ? String(data[i][col]) : "");
-                            } else {
-                                schedule.push("");
+            // Проверяем, все ли сотрудники из конфигурации присутствуют в таблицах
+            // Если нет, добавляем их с пустым расписанием
+            
+            // Функция для проверки и добавления сотрудников
+            function ensureStaffInCategory(staffList, category) {
+                for (const staffName of staffList) {
+                    // Проверяем, есть ли сотрудник в категории
+                    const found = allStaffByCategory[category].some(staff => {
+                        // Получаем базовое имя сотрудника (без информации в скобках)
+                        let baseStaffName = staff.name;
+                        if (staff.baseName) {
+                            baseStaffName = staff.baseName;
+                        } else {
+                            const bracketIndex = staff.name.indexOf('(');
+                            if (bracketIndex > 0) {
+                                baseStaffName = staff.name.substring(0, bracketIndex).trim();
                             }
                         }
                         
-                        // Добавляем Tanvi в RLH администраторы
-                        allStaffByCategory.rlhAdmins.push({
-                            name: "Tanvi",
+                        return baseStaffName === staffName || 
+                               baseStaffName.includes(staffName) || 
+                               staffName.includes(baseStaffName);
+                    });
+                    
+                    // Если сотрудника нет, добавляем его с пустым расписанием
+                    if (!found) {
+                        console.log(`Добавляем отсутствующего сотрудника ${staffName} в категорию ${category}`);
+                        
+                        // Создаем пустое расписание с пустыми строками
+                        const schedule = new Array(headerInfo.dayColumns.length).fill("");
+                        
+                        // Добавляем сотрудника в категорию
+                        allStaffByCategory[category].push({
+                            name: staffName,
+                            baseName: staffName, // Добавляем базовое имя
                             schedule: schedule
                         });
-                        
-                        break;
                     }
                 }
             }
             
-            // Проверяем терапевтов RLH
-            for (const therapistName of staffConfig.rlhTherapists) {
-                if (allStaffByCategory.rlhTherapists.findIndex(staff => staff.name.includes(therapistName)) === -1) {
-                    // Ищем терапевта в данных
-                    for (let i = 0; i < data.length; i++) {
-                        if (!data[i] || !data[i][0] || typeof data[i][0] !== 'string') continue;
-                        
-                        const rowStaffName = data[i][0].trim();
-                        
-                        if (rowStaffName.includes(therapistName) || therapistName.includes(rowStaffName)) {
-                            // Собираем расписание для всех дней
-                            const schedule = [];
-                            
-                            for (const col of headerInfo.dayColumns) {
-                                if (col < data[i].length) {
-                                    schedule.push(data[i][col] !== null ? String(data[i][col]) : "");
-                                } else {
-                                    schedule.push("");
-                                }
-                            }
-                            
-                            // Добавляем терапевта в RLH терапевты
-                            allStaffByCategory.rlhTherapists.push({
-                                name: therapistName,
-                                schedule: schedule
-                            });
-                            
-                            break;
-                        }
-                    }
-                }
-            }
+            // Проверяем все категории
+            ensureStaffInCategory(staffConfig.eastReceptionists, "eastAdmins");
+            ensureStaffInCategory(staffConfig.eastAttendance, "eastAttendance");
+            ensureStaffInCategory(staffConfig.eastTherapists, "eastTherapists");
+            ensureStaffInCategory(staffConfig.rlhReceptionists, "rlhAdmins");
+            ensureStaffInCategory(staffConfig.rlhAttendance, "rlhAttendance");
+            ensureStaffInCategory(staffConfig.rlhTherapists, "rlhTherapists");
+            ensureStaffInCategory(staffConfig.banksideReceptionists, "banksideAdmins");
+            ensureStaffInCategory(staffConfig.banksideAttendance, "banksideAttendance");
             
             // Заполняем таблицы данными
             for (const category in allStaffByCategory) {
                 if (allStaffByCategory[category].length > 0) {
-                    populateStaffTable(category, allStaffByCategory[category]);
+                    populateStaffTable(category, allStaffByCategory[category], headerInfo);
                 }
             }
             
@@ -1240,18 +1281,61 @@
         
         // Функция для определения штатной привязки сотрудника
         function getStaffHomeLocation(staffName) {
+            // Извлекаем базовое имя сотрудника (без информации в скобках)
+            let baseStaffName = staffName;
+            const bracketIndex = staffName.indexOf('(');
+            if (bracketIndex > 0) {
+                baseStaffName = staffName.substring(0, bracketIndex).trim();
+            }
+            
+            // Проверяем по базовому имени
             // Определяем, в какой локации сотрудник обычно работает
-            if (staffConfig.eastReceptionists.includes(staffName) || 
-                staffConfig.eastAttendance.includes(staffName) || 
-                staffConfig.eastTherapists.includes(staffName)) {
-                return "East";
-            } else if (staffConfig.rlhReceptionists.includes(staffName) || 
-                       staffConfig.rlhAttendance.includes(staffName) || 
-                       staffConfig.rlhTherapists.includes(staffName)) {
-                return "RLH";
-            } else if (staffConfig.banksideReceptionists.includes(staffName) || 
-                       staffConfig.banksideAttendance.includes(staffName)) {
-                return "Bankside";
+            for (const name of staffConfig.eastReceptionists) {
+                if (name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) {
+                    return "East";
+                }
+            }
+            
+            for (const name of staffConfig.eastAttendance) {
+                if (name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) {
+                    return "East";
+                }
+            }
+            
+            for (const name of staffConfig.eastTherapists) {
+                if (name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) {
+                    return "East";
+                }
+            }
+            
+            for (const name of staffConfig.rlhReceptionists) {
+                if (name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) {
+                    return "RLH";
+                }
+            }
+            
+            for (const name of staffConfig.rlhAttendance) {
+                if (name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) {
+                    return "RLH";
+                }
+            }
+            
+            for (const name of staffConfig.rlhTherapists) {
+                if (name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) {
+                    return "RLH";
+                }
+            }
+            
+            for (const name of staffConfig.banksideReceptionists) {
+                if (name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) {
+                    return "Bankside";
+                }
+            }
+            
+            for (const name of staffConfig.banksideAttendance) {
+                if (name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) {
+                    return "Bankside";
+                }
             }
             
             // Если не найдено в известных списках
@@ -1260,24 +1344,79 @@
         
         // Функция для определения должности сотрудника
         function getStaffPosition(staffName) {
-            if (staffConfig.seniorSupervisors.includes(staffName)) {
-                return "Senior Supervisor";
-            } else if (staffConfig.seniorReceptionists.includes(staffName)) {
-                return "Senior Receptionist";
-            } else if (staffConfig.eastReceptionists.includes(staffName) || 
-                     staffConfig.rlhReceptionists.includes(staffName) || 
-                     staffConfig.banksideReceptionists.includes(staffName)) {
-                return "Receptionist";
-            } else if (staffConfig.eastAttendance.includes(staffName) || 
-                     staffConfig.rlhAttendance.includes(staffName) || 
-                     staffConfig.banksideAttendance.includes(staffName)) {
-                return "Spa Attendance";
-            } else if (staffConfig.eastTherapists.includes(staffName) || 
-                     staffConfig.rlhTherapists.includes(staffName)) {
-                return "Therapist";
+            // Извлекаем базовое имя сотрудника (без информации в скобках)
+            let baseStaffName = staffName;
+            const bracketIndex = staffName.indexOf('(');
+            if (bracketIndex > 0) {
+                baseStaffName = staffName.substring(0, bracketIndex).trim();
             }
             
-            return "";
+            // Проверяем по базовому имени
+            for (const name of staffConfig.seniorSupervisors) {
+                if (name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) {
+                    return "Senior Supervisor";
+                }
+            }
+            
+            for (const name of staffConfig.seniorReceptionists) {
+                if (name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) {
+                    return "Senior Receptionist";
+                }
+            }
+            
+            // Проверяем, является ли сотрудник администратором
+            for (const name of staffConfig.eastReceptionists) {
+                if (name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) {
+                    return "Receptionist";
+                }
+            }
+            
+            for (const name of staffConfig.rlhReceptionists) {
+                if (name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) {
+                    return "Receptionist";
+                }
+            }
+            
+            for (const name of staffConfig.banksideReceptionists) {
+                if (name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) {
+                    return "Receptionist";
+                }
+            }
+            
+            // Проверяем, является ли сотрудник spa attendance
+            for (const name of staffConfig.eastAttendance) {
+                if (name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) {
+                    return "Spa Attendance";
+                }
+            }
+            
+            for (const name of staffConfig.rlhAttendance) {
+                if (name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) {
+                    return "Spa Attendance";
+                }
+            }
+            
+            for (const name of staffConfig.banksideAttendance) {
+                if (name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) {
+                    return "Spa Attendance";
+                }
+            }
+            
+            // Проверяем, является ли сотрудник терапевтом
+            for (const name of staffConfig.eastTherapists) {
+                if (name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) {
+                    return "Therapist";
+                }
+            }
+            
+            for (const name of staffConfig.rlhTherapists) {
+                if (name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) {
+                    return "Therapist";
+                }
+            }
+            
+            // Если не найдено в известных списках
+            return "Unknown";
         }
         
         // Функция для нахождения всех приглашенных сотрудников (работающих не в своей основной локации)
@@ -1304,44 +1443,6 @@
                 "Bankside": "b7b7b7", // Серый
                 "Sick": "ff0000" // Красный для sick
             };
-            
-            // Функция для проверки приблизительного совпадения цветов
-            function isSimilarColor(color1, color2) {
-                if (!color1 || !color2) return false;
-                
-                // Если точное совпадение
-                if (color1.toLowerCase() === color2.toLowerCase()) return true;
-                
-                // Проверяем приблизительное совпадение
-                try {
-                    // Преобразуем цвета в RGB компоненты
-                    const rgb1 = {
-                        r: parseInt(color1.substring(0, 2), 16),
-                        g: parseInt(color1.substring(2, 4), 16),
-                        b: parseInt(color1.substring(4, 6), 16)
-                    };
-                    
-                    const rgb2 = {
-                        r: parseInt(color2.substring(0, 2), 16),
-                        g: parseInt(color2.substring(2, 4), 16),
-                        b: parseInt(color2.substring(4, 6), 16)
-                    };
-                    
-                    // Вычисляем разницу между компонентами
-                    const diff = {
-                        r: Math.abs(rgb1.r - rgb2.r),
-                        g: Math.abs(rgb1.g - rgb2.g),
-                        b: Math.abs(rgb1.b - rgb2.b)
-                    };
-                    
-                    // Если разница меньше порогового значения, считаем цвета похожими
-                    const threshold = 10;
-                    return diff.r <= threshold && diff.g <= threshold && diff.b <= threshold;
-                } catch (e) {
-                    console.error("Ошибка при сравнении цветов:", e);
-                    return false;
-                }
-            }
             
             console.log("Начинаю поиск приглашенных сотрудников...");
             console.log("Используемые цвета локаций:", locationColors);
@@ -1396,7 +1497,7 @@
                                 
                                 // Если это не выходной и есть смена
                                 if (shift && shift !== "X" && shift !== "XR" && 
-                                    shift !== "HOL" && shift !== "TR") {
+                                    shift !== "HOL" && shift !== "TR" && shift !== "sick" && shift.trim() !== "") {
                                     
                                     console.log(`Проверяю смену для ${staffName}, день ${j}, значение: ${shift}`);
                                     debugInfo += `День ${j}, смена: ${shift} - `;
@@ -1422,60 +1523,8 @@
                                         }
                                     }
                                     
-                                    // Если не нашли цвет в извлеченных данных, пробуем другие методы
-                                    if (!cellColor) {
-                                        // Проверяем наличие свойства _cells
-                                        if (data[i]._cells && data[i]._cells[col]) {
-                                            console.log(`Нашел _cells для ${staffName}, день ${j}`);
-                                            
-                                            // Проверяем стили
-                                            if (data[i]._cells[col].s) {
-                                                console.log(`Нашел стили для ${staffName}, день ${j}`);
-                                                
-                                                // Проверяем разные свойства для цвета
-                                                if (data[i]._cells[col].s.bgColor && data[i]._cells[col].s.bgColor.rgb) {
-                                                    cellColor = data[i]._cells[col].s.bgColor.rgb.toLowerCase();
-                                                    console.log(`Нашел bgColor: ${cellColor}`);
-                                                    debugInfo += `найден bgColor: ${cellColor} - `;
-                                                }
-                                                else if (data[i]._cells[col].s.fgColor && data[i]._cells[col].s.fgColor.rgb) {
-                                                    cellColor = data[i]._cells[col].s.fgColor.rgb.toLowerCase();
-                                                    console.log(`Нашел fgColor: ${cellColor}`);
-                                                    debugInfo += `найден fgColor: ${cellColor} - `;
-                                                }
-                                                else if (data[i]._cells[col].s.fill && data[i]._cells[col].s.fill.fgColor && data[i]._cells[col].s.fill.fgColor.rgb) {
-                                                    cellColor = data[i]._cells[col].s.fill.fgColor.rgb.toLowerCase();
-                                                    console.log(`Нашел fill.fgColor: ${cellColor}`);
-                                                    debugInfo += `найден fill.fgColor: ${cellColor} - `;
-                                                }
-                                            }
-                                        }
-                                        
-                                        // Проверяем свойство s напрямую
-                                        if (!cellColor && data[i][col] && data[i][col].s) {
-                                            console.log(`Проверяю свойство s напрямую для ${staffName}, день ${j}`);
-                                            
-                                            if (data[i][col].s.fill && data[i][col].s.fill.fgColor && data[i][col].s.fill.fgColor.rgb) {
-                                                cellColor = data[i][col].s.fill.fgColor.rgb.toLowerCase();
-                                                console.log(`Нашел прямой fill.fgColor: ${cellColor}`);
-                                                debugInfo += `найден прямой fill.fgColor: ${cellColor} - `;
-                                            }
-                                        }
-                                        
-                                        // Проверяем свойство style
-                                        if (!cellColor && data[i][col] && data[i][col].style) {
-                                            console.log(`Проверяю свойство style для ${staffName}, день ${j}`);
-                                            
-                                            if (data[i][col].style.fill && data[i][col].style.fill.fgColor && data[i][col].style.fill.fgColor.rgb) {
-                                                cellColor = data[i][col].style.fill.fgColor.rgb.toLowerCase();
-                                                console.log(`Нашел style.fill.fgColor: ${cellColor}`);
-                                                debugInfo += `найден style.fill.fgColor: ${cellColor} - `;
-                                            }
-                                        }
-                                    }
-                                    
                                     // Проверяем, является ли ячейка "sick" по цвету или тексту
-                                    if ((cellColor && isSimilarColor(cellColor, locationColors.Sick)) || shift === "sick") {
+                                    if ((cellColor && cellColor === locationColors.Sick.toLowerCase()) || shift === "sick") {
                                         // Это sick, не добавляем в гостевые смены
                                         console.log(`${staffName} болеет в день ${j}`);
                                         debugInfo += `болеет<br>`;
@@ -1488,35 +1537,50 @@
                                     if (cellColor) {
                                         console.log(`Цвет ячейки для ${staffName}, день ${j}: ${cellColor}`);
                                         
-                                        // Проверяем цвет на соответствие локациям с учетом приблизительного совпадения
-                                        let matchedLocation = null;
-                                        
-                                        // Проверяем East (зеленый)
-                                        if (isSimilarColor(cellColor, locationColors.East)) {
-                                            matchedLocation = "East";
+                                        // Проверяем цвет на точное соответствие локациям
+                                        if (cellColor === locationColors.East.toLowerCase()) {
+                                        shiftLocation = "East";
                                             debugInfo += `цвет соответствует East - `;
                                         }
                                         // Проверяем RLH (синий)
-                                        else if (isSimilarColor(cellColor, locationColors.RLH)) {
-                                            matchedLocation = "RLH";
+                                        else if (cellColor === locationColors.RLH.toLowerCase()) {
+                                        shiftLocation = "RLH";
                                             debugInfo += `цвет соответствует RLH - `;
                                         }
                                         // Проверяем Bankside (серый)
-                                        else if (isSimilarColor(cellColor, locationColors.Bankside)) {
-                                            matchedLocation = "Bankside";
+                                        else if (cellColor === locationColors.Bankside.toLowerCase()) {
+                                        shiftLocation = "Bankside";
                                             debugInfo += `цвет соответствует Bankside - `;
-                                        } else {
+                                        } 
+                                        // Если точного совпадения нет, используем приблизительное
+                                        else if (isSimilarColor(cellColor, locationColors.East)) {
+                                            shiftLocation = "East";
+                                            debugInfo += `цвет приблизительно соответствует East - `;
+                                        }
+                                        else if (isSimilarColor(cellColor, locationColors.RLH)) {
+                                            shiftLocation = "RLH";
+                                            debugInfo += `цвет приблизительно соответствует RLH - `;
+                                        }
+                                        else if (isSimilarColor(cellColor, locationColors.Bankside)) {
+                                            shiftLocation = "Bankside";
+                                            debugInfo += `цвет приблизительно соответствует Bankside - `;
+                                        }
+                                        else {
                                             debugInfo += `цвет не соответствует ни одной локации - `;
                                         }
                                         
                                         // Если нашли соответствие и это не домашняя локация
-                                        if (matchedLocation && matchedLocation !== homeLocation) {
-                                            shiftLocation = matchedLocation;
-                                            console.log(`${staffName} работает в ${matchedLocation} (не его домашняя локация)`);
-                                            debugInfo += `работает в ${matchedLocation} (не его домашняя локация)<br>`;
-                                        } else if (matchedLocation) {
-                                            console.log(`${staffName} работает в ${matchedLocation} (его домашняя локация)`);
-                                            debugInfo += `работает в ${matchedLocation} (его домашняя локация)<br>`;
+                                        if (shiftLocation && shiftLocation !== homeLocation) {
+                                        guestShifts.push({
+                                            day: j,
+                                            shift: shift,
+                                            location: shiftLocation
+                                        });
+                                            console.log(`${staffName} работает в ${shiftLocation} (не его домашняя локация)`);
+                                            debugInfo += `работает в ${shiftLocation} (не его домашняя локация)<br>`;
+                                        } else if (shiftLocation) {
+                                            console.log(`${staffName} работает в ${shiftLocation} (его домашняя локация)`);
+                                            debugInfo += `работает в ${shiftLocation} (его домашняя локация)<br>`;
                                         } else {
                                             console.log(`Неизвестный цвет ячейки для ${staffName}, день ${j}: ${cellColor}`);
                                             debugInfo += `неизвестный цвет: ${cellColor}<br>`;
@@ -1524,37 +1588,6 @@
                                     } else {
                                         console.log(`Не удалось определить цвет ячейки для ${staffName}, день ${j}`);
                                         debugInfo += `не удалось определить цвет<br>`;
-                                        
-                                        // Попробуем определить локацию по тексту смены
-                                        if (shift.includes("east") || shift.includes("East")) {
-                                            if (homeLocation !== "East") {
-                                        shiftLocation = "East";
-                                                console.log(`${staffName} работает в East по тексту смены (не его домашняя локация)`);
-                                                debugInfo += `работает в East по тексту (не его домашняя локация)<br>`;
-                                            }
-                                        } else if (shift.includes("rlh") || shift.includes("RLH")) {
-                                            if (homeLocation !== "RLH") {
-                                        shiftLocation = "RLH";
-                                                console.log(`${staffName} работает в RLH по тексту смены (не его домашняя локация)`);
-                                                debugInfo += `работает в RLH по тексту (не его домашняя локация)<br>`;
-                                            }
-                                        } else if (shift.includes("bankside") || shift.includes("Bankside")) {
-                                            if (homeLocation !== "Bankside") {
-                                        shiftLocation = "Bankside";
-                                                console.log(`${staffName} работает в Bankside по тексту смены (не его домашняя локация)`);
-                                                debugInfo += `работает в Bankside по тексту (не его домашняя локация)<br>`;
-                                            }
-                                        }
-                                    }
-                                    
-                                    // Если определили локацию и она отличается от домашней
-                                    if (shiftLocation) {
-                                        guestShifts.push({
-                                            day: j,
-                                            shift: shift,
-                                            location: shiftLocation
-                                        });
-                                        console.log(`Добавлена гостевая смена для ${staffName}, день ${j}, локация: ${shiftLocation}`);
                                     }
                                 }
                             }
@@ -1704,16 +1737,39 @@
                     if (staff.schedule[i] === "sick") {
                         tdDay.textContent = "🤒";
                     } else {
-                        tdDay.textContent = staff.schedule[i];
-                    }
-                    
-                    // Add color based on location
-                    if (staff.schedule[i]) {
-                        for (const shift of staff.shifts) {
-                            if (shift.day === i) {
-                                tdDay.className = `loc-${shift.location.toLowerCase()}`;
-                                break;
+                        // Проверяем, является ли эта смена гостевой
+                        let guestShiftLocation = null;
+                        
+                        // Проверяем гостевые смены
+                        if (staff.shifts && Array.isArray(staff.shifts)) {
+                            for (const shift of staff.shifts) {
+                                if (shift.day === i) {
+                                    guestShiftLocation = shift.location;
+                                    break;
+                                }
                             }
+                        }
+                        
+                        // Если это гостевая смена, показываем локацию в скобках
+                        if (guestShiftLocation && guestShiftLocation !== staff.homeLocation) {
+                            // Создаем контейнер для времени и локации
+                            tdDay.innerHTML = '';
+                            const timeDiv = document.createElement('div');
+                            timeDiv.textContent = staff.schedule[i];
+                            
+                            const locationDiv = document.createElement('div');
+                            locationDiv.textContent = `(${guestShiftLocation})`;
+                            locationDiv.style.fontSize = '0.8em';
+                            locationDiv.style.color = '#666';
+                            
+                            tdDay.appendChild(timeDiv);
+                            tdDay.appendChild(locationDiv);
+                            
+                            // Добавляем класс для цвета локации
+                            tdDay.className = `loc-${guestShiftLocation.toLowerCase()}`;
+                        } else {
+                            tdDay.textContent = staff.schedule[i];
+                            tdDay.className = getCellClass(staff.schedule[i]);
                         }
                     }
                     
@@ -1725,7 +1781,7 @@
         }
         
         // Функция для заполнения таблицы данными о сотрудниках
-        function populateStaffTable(tableId, staffData) {
+        function populateStaffTable(tableId, staffData, headerInfo) {
             const table = document.getElementById(tableId);
             if (!table) return;
             
@@ -1759,26 +1815,20 @@
                     currentLocation = "Bankside";
                 }
                 
+                // Определяем домашнюю локацию сотрудника
+                const homeLocation = getStaffHomeLocation(staff.name);
+                
                 // Проверяем, является ли сотрудник гостевым для текущей локации
-                if (staff.homeLocation && staff.homeLocation !== currentLocation && currentLocation !== "") {
+                if (homeLocation && homeLocation !== currentLocation && currentLocation !== "") {
                     isGuest = true;
-                    guestLocation = staff.homeLocation;
+                    guestLocation = homeLocation;
                 }
                 
-                // Добавляем должность для администраторов
-                if (tableId === "eastAdmins" || tableId === "rlhAdmins" || tableId === "banksideAdmins") {
-                    const nameSpan = document.createElement("span");
+                // Добавляем имя и должность
+                if (tableId.includes("Admins")) {
+                    nameTd.textContent = staff.name;
                     
-                    // Добавляем название СПА в скобках для гостевых сотрудников
-                    if (isGuest) {
-                        nameSpan.textContent = `${staff.name} (${guestLocation})`;
-                    } else {
-                        nameSpan.textContent = staff.name;
-                    }
-                    
-                    nameTd.appendChild(nameSpan);
-                    
-                    // Добавляем метку должности
+                    // Добавляем должность под именем
                     const positionSpan = document.createElement("span");
                     positionSpan.className = "position-label";
                     
@@ -1790,13 +1840,14 @@
                         positionSpan.textContent = "Receptionist";
                     }
                     
+                    nameTd.appendChild(document.createElement("br"));
                     nameTd.appendChild(positionSpan);
                 } else {
                     // Добавляем название СПА в скобках для гостевых сотрудников
                     if (isGuest) {
                         nameTd.textContent = `${staff.name} (${guestLocation})`;
-                    } else {
-                        nameTd.textContent = staff.name;
+                } else {
+                    nameTd.textContent = staff.name;
                     }
                 }
                 
@@ -1812,11 +1863,100 @@
                     // Проверяем, является ли значение "sick"
                     if (value === "sick") {
                         scheduleTd.textContent = "🤒";
+                        scheduleTd.className = "cell-sick";
                     } else {
-                    scheduleTd.textContent = value;
+                        // Определяем локацию для текущей смены на основе цвета ячейки
+                        let shiftLocation = null;
+                        
+                        // Проверяем, есть ли у сотрудника гостевые смены
+                        if (staff.shifts && Array.isArray(staff.shifts)) {
+                            for (const shift of staff.shifts) {
+                                if (shift.day === i) {
+                                    shiftLocation = shift.location;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // Если не нашли локацию в shifts, пытаемся определить по цвету ячейки
+                        if (!shiftLocation && staff.row !== undefined && window.excelCellColors && headerInfo) {
+                            // Проверяем, что значение не пустое и не является выходным днем
+                            // Учитываем только рабочие дни (содержат время работы)
+                            if (value && value !== "X" && value !== "XR" && value !== "HOL" && value !== "TR" && 
+                                value !== "sick" && value.trim() !== "") {
+                                const col = headerInfo.dayColumns[i];
+                                const colLetter = String.fromCharCode(65 + col);
+                                const rowNumber = staff.row + 1;
+                                const cellAddress = `${colLetter}${rowNumber}`;
+                                
+                                if (window.excelCellColors[cellAddress]) {
+                                    const cellColor = window.excelCellColors[cellAddress].toLowerCase();
+                                    
+                                    // Проверяем, что цвет не белый и не прозрачный
+                                    if (cellColor && cellColor !== "ffffff" && cellColor !== "transparent") {
+                                        // Определяем локацию по точному цвету
+                                        if (cellColor === locationColors.East.toLowerCase()) {
+                                            shiftLocation = "East";
+                                        } else if (cellColor === locationColors.RLH.toLowerCase()) {
+                                            shiftLocation = "RLH";
+                                        } else if (cellColor === locationColors.Bankside.toLowerCase()) {
+                                            shiftLocation = "Bankside";
+                                        } 
+                                        // Если точного совпадения нет, используем приблизительное только для известных цветов
+                                        else if (isSimilarColor(cellColor, locationColors.East)) {
+                                            shiftLocation = "East";
+                                        } else if (isSimilarColor(cellColor, locationColors.RLH)) {
+                                            shiftLocation = "RLH";
+                                        } else if (isSimilarColor(cellColor, locationColors.Bankside)) {
+                                            shiftLocation = "Bankside";
+                                        }
+                                        
+                                        // Выводим отладочную информацию
+                                        console.log(`Ячейка ${cellAddress} для ${staff.name}, день ${i}: цвет ${cellColor}, определена локация ${shiftLocation}`);
+                                    }
+                                }
+                            } else {
+                                // Для выходных дней и больничных не определяем локацию
+                                shiftLocation = null;
+                            }
+                        }
+                        
+                        // Если не удалось определить локацию, используем текущую
+                        if (!shiftLocation) {
+                            shiftLocation = currentLocation;
+                        }
+                        
+                        // Если это гостевая смена (локация смены отличается от домашней локации сотрудника)
+                        // И это не выходной день или больничный
+                        if (value && value !== "X" && value !== "XR" && value !== "HOL" && value !== "TR" && 
+                            value !== "sick" && value.trim() !== "" && 
+                            shiftLocation && homeLocation && shiftLocation !== homeLocation) {
+                            // Создаем контейнер для времени и локации
+                            scheduleTd.innerHTML = '';
+                            const timeDiv = document.createElement('div');
+                            timeDiv.textContent = value;
+                            
+                            const locationDiv = document.createElement('div');
+                            locationDiv.textContent = `(${shiftLocation})`;
+                            locationDiv.style.fontSize = '0.8em';
+                            locationDiv.style.color = '#666';
+                            
+                            scheduleTd.appendChild(timeDiv);
+                            scheduleTd.appendChild(locationDiv);
+                            
+                            // Добавляем класс для цвета локации
+                            scheduleTd.className = `loc-${shiftLocation.toLowerCase()}`;
+                        } else if (value && value !== "X" && value !== "XR" && value !== "HOL" && value !== "TR" && 
+                                  value !== "sick" && value.trim() !== "") {
+                            // Это обычная рабочая смена, отображаем рабочие часы
+                            scheduleTd.textContent = value;
+                            scheduleTd.className = getCellClass(value);
+                        } else {
+                            // Это выходной день или больничный
+                            scheduleTd.textContent = value;
+                            scheduleTd.className = getCellClass(value);
+                        }
                     }
-                    
-                    scheduleTd.className = getCellClass(value);
                     
                     tr.appendChild(scheduleTd);
                 }
@@ -1993,6 +2133,25 @@
                 
                 // Рассчитываем общее количество часов
                 let totalHours = endHour - startHour;
+                
+                // Вычитаем 30 минут (0.5 часа) из каждой рабочей смены
+                totalHours = Math.max(0, totalHours - 0.5);
+                
+                console.log(`Рассчитанные часы (после вычета 30 минут): ${totalHours}`);
+                
+                return totalHours;
+            }
+            
+            // Формат "9" (только начальный час, предполагаем 8-часовую смену)
+            match = shift.match(/^(\d{1,2})$/);
+            if (match) {
+                let startHour = parseInt(match[1]);
+                let endHour = startHour + 8; // Предполагаем 8-часовую смену
+                
+                console.log(`Формат только начальный час: ${startHour}, предполагаем 8-часовую смену до ${endHour}`);
+                
+                // Рассчитываем общее количество часов
+                let totalHours = 8;
                 
                 // Вычитаем 30 минут (0.5 часа) из каждой рабочей смены
                 totalHours = Math.max(0, totalHours - 0.5);
@@ -2357,7 +2516,7 @@
                 
                 // Проходим по расписанию и считаем часы
                 if (staff.schedule && Array.isArray(staff.schedule)) {
-                    for (let i = 0; i < staff.schedule.length; i++) {
+                for (let i = 0; i < staff.schedule.length; i++) {
                         const shift = staff.schedule[i];
                         
                         // Пропускаем выходные и больничные
@@ -2762,8 +2921,9 @@
                     b: Math.abs(rgb1.b - rgb2.b)
                 };
                 
-                // Если разница меньше порогового значения, считаем цвета похожими
-                const threshold = 10;
+                // Используем очень строгий порог для сравнения цветов
+                // Для точных цветов #93C47D, #4A86E8, #B7B7B7
+                const threshold = 3;
                 return diff.r <= threshold && diff.g <= threshold && diff.b <= threshold;
             } catch (e) {
                 console.error("Ошибка при сравнении цветов:", e);
@@ -2806,6 +2966,95 @@
             }
             
             return null;
+        }
+        
+        // Добавляем обработчик события загрузки страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            // Добавляем обработчик события для input file
+            document.getElementById('fileInput').addEventListener('change', function(e) {
+                if (this.files.length > 0) {
+                    handleExcelFile(this.files[0]);
+                }
+            });
+        });
+        
+        // Функция для загрузки файла spa.xlsx по умолчанию (для Лары и Хуаниты)
+        function loadDefaultFile() {
+            try {
+                // Создаем объект XMLHttpRequest для загрузки файла
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', 'spa.xlsx', true);
+                xhr.responseType = 'arraybuffer';
+                
+                // Показываем индикатор загрузки
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('statusMessage').className = 'status';
+                document.getElementById('statusMessage').textContent = 'Loading default file...';
+                
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        // Файл успешно загружен
+                        const data = new Uint8Array(xhr.response);
+                        const workbook = XLSX.read(data, { type: 'array', cellStyles: true });
+                        
+                        // Получаем первый лист
+                        const firstSheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[firstSheetName];
+                        
+                        // Извлекаем цвета ячеек
+                        const cellColors = extractCellColors(worksheet);
+                        window.excelCellColors = cellColors;
+                        
+                        // Преобразуем в JSON
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: null, cellStyles: true });
+                        
+                        // Отображаем данные
+                        displayData(jsonData);
+                        
+                document.getElementById('statusMessage').className = 'status success';
+                        document.getElementById('statusMessage').textContent = 'Default file successfully loaded!';
+                    } else {
+                        // Ошибка загрузки файла
+                        console.error('Error loading file:', xhr.statusText);
+                document.getElementById('statusMessage').className = 'status error';
+                        document.getElementById('statusMessage').textContent = 'Error loading file: ' + xhr.statusText;
+                    }
+                    document.getElementById('loading').style.display = 'none';
+                };
+                
+                xhr.onerror = function() {
+                    // Сетевая ошибка
+                    console.error('Network error while loading file');
+                    document.getElementById('statusMessage').className = 'status error';
+                    document.getElementById('statusMessage').textContent = 'Network error while loading file';
+                    document.getElementById('loading').style.display = 'none';
+                };
+                
+                xhr.send();
+            } catch (error) {
+                // Обработка других ошибок
+                console.error('Error processing default file:', error);
+                document.getElementById('statusMessage').className = 'status error';
+                document.getElementById('statusMessage').textContent = 'Error: ' + error.message;
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // Добавляем функцию для форматирования рабочих часов
+        function formatWorkingHours(hours) {
+            if (!hours || hours === "") return "";
+            
+            // Если это уже отформатированное время (например, "9-5"), возвращаем как есть
+            if (hours.includes("-")) return hours;
+            
+            // Если это просто число, добавляем стандартный формат (например, "9" -> "9-5")
+            if (!isNaN(hours) && hours.trim() !== "") {
+                const startHour = parseInt(hours.trim());
+                return `${startHour}-${startHour + 8}`;
+            }
+            
+            // В остальных случаях возвращаем как есть
+            return hours;
         }
     </script>
 </body>
