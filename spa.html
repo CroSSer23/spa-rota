@@ -845,7 +845,7 @@
             eastTherapists: ["Agata", "Carmilla", "Andrea", "Simone", "Isabella", "Prem", "Siobhan", "Chris", "Sophie", "Iskra"],
             rlhReceptionists: ["Tanvi", "Umarin"],
             rlhAttendance: ["Veska", "Maksim", "Malcan", "Dipali", "Arpit", "Rashmi"],
-            rlhTherapists: ["Umarin", "Shiv", "Bea", "Christine", "Guido", "Sara", "Mihaela", "Ashley", "Aldona"],
+            rlhTherapists: ["Shiv", "Bea", "Christine", "Guido", "Sara", "Mihaela", "Ashley", "Aldona"],
             banksideReceptionists: ["Aditya", "Naveen"],
             banksideAttendance: ["Elisa", "Fatim*"]
         };
@@ -1200,13 +1200,28 @@
                 const staff = allFoundStaff[staffName];
                 const baseStaffName = staff.baseName;
                 
+                // Проверяем наличие смен в каждой локации
+                let hasEastShift = false;
+                let hasRlhShift = false;
+                let hasBanksideShift = false;
+                
+                // Если у сотрудника есть shifts, проверяем локации
+                if (staff.shifts && staff.shifts.length > 0) {
+                    for (const shift of staff.shifts) {
+                        if (shift.location === "East") hasEastShift = true;
+                        if (shift.location === "RLH") hasRlhShift = true;
+                        if (shift.location === "Bankside") hasBanksideShift = true;
+                    }
+                }
+                
                 // Проверяем, к каким категориям может относиться сотрудник
                 
-                // East Receptionists
+                // East Receptionists - добавляем только если у них есть смены в East или они относятся к этой локации
                 if (staffConfig.eastReceptionists.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName))) {
                     // Проверяем, не добавлен ли уже этот сотрудник
                     if (!allStaffByCategory.eastAdmins.some(s => s.baseName === staff.baseName || 
                         (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                        // Домашняя локация для этого сотрудника - East, поэтому добавляем всегда
                         allStaffByCategory.eastAdmins.push(staff);
                     }
                 }
@@ -1216,6 +1231,7 @@
                     // Проверяем, не добавлен ли уже этот сотрудник
                     if (!allStaffByCategory.eastAttendance.some(s => s.baseName === staff.baseName || 
                         (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                        // Домашняя локация для этого сотрудника - East, поэтому добавляем всегда
                         allStaffByCategory.eastAttendance.push(staff);
                     }
                 }
@@ -1225,33 +1241,37 @@
                     // Проверяем, не добавлен ли уже этот сотрудник
                     if (!allStaffByCategory.eastTherapists.some(s => s.baseName === staff.baseName || 
                         (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                        // Домашняя локация для этого сотрудника - East, поэтому добавляем всегда
                         allStaffByCategory.eastTherapists.push(staff);
                     }
                 }
                 
-                // RLH Receptionists
+                // RLH Receptionists - добавляем только если у них есть смена в RLH или RLH их домашняя локация
                 if (staffConfig.rlhReceptionists.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName))) {
                     // Проверяем, не добавлен ли уже этот сотрудник
                     if (!allStaffByCategory.rlhAdmins.some(s => s.baseName === staff.baseName || 
                         (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                        // Домашняя локация для этого сотрудника - RLH, поэтому добавляем всегда
                         allStaffByCategory.rlhAdmins.push(staff);
                     }
                 }
                 
-                // RLH Attendance
+                // RLH Attendance - добавляем только если у них есть смена в RLH или RLH их домашняя локация
                 if (staffConfig.rlhAttendance.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName))) {
                     // Проверяем, не добавлен ли уже этот сотрудник
                     if (!allStaffByCategory.rlhAttendance.some(s => s.baseName === staff.baseName || 
                         (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                        // Домашняя локация для этого сотрудника - RLH, поэтому добавляем всегда
                         allStaffByCategory.rlhAttendance.push(staff);
                     }
                 }
                 
-                // RLH Therapists
+                // RLH Therapists - проверяем, есть ли смены в RLH для сотрудников из other категорий
                 if (staffConfig.rlhTherapists.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName))) {
                     // Проверяем, не добавлен ли уже этот сотрудник
                     if (!allStaffByCategory.rlhTherapists.some(s => s.baseName === staff.baseName || 
                         (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                        // Домашняя локация для этого сотрудника - RLH, поэтому добавляем всегда
                         allStaffByCategory.rlhTherapists.push(staff);
                     }
                 }
@@ -1261,6 +1281,7 @@
                     // Проверяем, не добавлен ли уже этот сотрудник
                     if (!allStaffByCategory.banksideAdmins.some(s => s.baseName === staff.baseName || 
                         (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                        // Домашняя локация для этого сотрудника - Bankside, поэтому добавляем всегда
                         allStaffByCategory.banksideAdmins.push(staff);
                     }
                 }
@@ -1270,66 +1291,35 @@
                     // Проверяем, не добавлен ли уже этот сотрудник
                     if (!allStaffByCategory.banksideAttendance.some(s => s.baseName === staff.baseName || 
                         (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                        // Домашняя локация для этого сотрудника - Bankside, поэтому добавляем всегда
                         allStaffByCategory.banksideAttendance.push(staff);
                     }
                 }
                 
-                // Проверяем, есть ли у сотрудника смены в других локациях
-                if (allFoundStaff[staffName].shifts) {
-                    const shifts = allFoundStaff[staffName].shifts;
-                    const locations = new Set(shifts.map(shift => shift.location));
-                    const staff = allFoundStaff[staffName];
-                    const baseStaffName = staff.baseName;
-                    
-                    // Если у сотрудника есть смены в East, добавляем его в соответствующую категорию
-                    if (locations.has("East")) {
-                        // Определяем, в какую категорию добавить сотрудника
-                        if (staffConfig.eastReceptionists.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) && 
-                            !allStaffByCategory.eastAdmins.some(s => s.baseName === staff.baseName || 
-                            (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
-                            allStaffByCategory.eastAdmins.push(staff);
-                        } else if (staffConfig.eastAttendance.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) && 
-                            !allStaffByCategory.eastAttendance.some(s => s.baseName === staff.baseName || 
-                            (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
-                            allStaffByCategory.eastAttendance.push(staff);
-                        } else if (staffConfig.eastTherapists.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) && 
-                            !allStaffByCategory.eastTherapists.some(s => s.baseName === staff.baseName || 
-                            (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
-                            allStaffByCategory.eastTherapists.push(staff);
-                        }
-                    }
-                    
-                    // Если у сотрудника есть смены в RLH, добавляем его в соответствующую категорию
-                    if (locations.has("RLH")) {
-                        // Определяем, в какую категорию добавить сотрудника
-                        if (staffConfig.rlhReceptionists.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) && 
-                            !allStaffByCategory.rlhAdmins.some(s => s.baseName === staff.baseName || 
-                            (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
-                            allStaffByCategory.rlhAdmins.push(staff);
-                        } else if (staffConfig.rlhAttendance.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) && 
-                            !allStaffByCategory.rlhAttendance.some(s => s.baseName === staff.baseName || 
-                            (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
-                            allStaffByCategory.rlhAttendance.push(staff);
-                        } else if (staffConfig.rlhTherapists.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) && 
+                // Теперь добавляем сотрудников в локации, где у них есть смены, но это не их домашние локации
+                
+                // East терапистов в RLH и Bankside таблицы, если у них там есть смены
+                if (staffConfig.eastTherapists.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName))) {
+                    // Добавляем East терапистов в RLH, если у них есть там смены
+                    if (hasRlhShift && 
                             !allStaffByCategory.rlhTherapists.some(s => s.baseName === staff.baseName || 
                             (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
                             allStaffByCategory.rlhTherapists.push(staff);
                         }
+                    
+                    // TODO: Если у East терапистов есть смены в Bankside, добавить их туда, когда будет таблица для них
+                }
+                
+                // RLH терапистов в East и Bankside таблицы, если у них там есть смены
+                if (staffConfig.rlhTherapists.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName))) {
+                    // Добавляем RLH терапистов в East, если у них есть там смены
+                    if (hasEastShift && 
+                        !allStaffByCategory.eastTherapists.some(s => s.baseName === staff.baseName || 
+                            (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
+                        allStaffByCategory.eastTherapists.push(staff);
                     }
                     
-                    // Если у сотрудника есть смены в Bankside, добавляем его в соответствующую категорию
-                    if (locations.has("Bankside")) {
-                        // Определяем, в какую категорию добавить сотрудника
-                        if (staffConfig.banksideReceptionists.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) && 
-                            !allStaffByCategory.banksideAdmins.some(s => s.baseName === staff.baseName || 
-                            (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
-                            allStaffByCategory.banksideAdmins.push(staff);
-                        } else if (staffConfig.banksideAttendance.some(name => name === baseStaffName || baseStaffName.includes(name) || name.includes(baseStaffName)) && 
-                            !allStaffByCategory.banksideAttendance.some(s => s.baseName === staff.baseName || 
-                            (s.baseName && staff.baseName && (s.baseName.includes(staff.baseName) || staff.baseName.includes(s.baseName))))) {
-                            allStaffByCategory.banksideAttendance.push(staff);
-                        }
-                    }
+                    // TODO: Если у RLH терапистов есть смены в Bankside, добавить их туда, когда будет таблица для них
                 }
             }
             
@@ -1357,8 +1347,14 @@
                                staffName.includes(baseStaffName);
                     });
                     
-                    // Если сотрудника нет, добавляем его с пустым расписанием
+                    // Если сотрудника нет, добавляем его с пустым расписанием, но с проверкой для Chris
                     if (!found) {
+                        // Особое правило для Chris - не добавлять его в RLH Therapists если у него нет смен
+                        if (staffName === "Chris" && category === "rlhTherapists") {
+                            console.log(`Не добавляем сотрудника ${staffName} в категорию ${category}, так как у него нет смен в RLH`);
+                            continue;
+                        }
+                        
                         console.log(`Добавляем отсутствующего сотрудника ${staffName} в категорию ${category}`);
                         
                         // Создаем пустое расписание с пустыми строками
@@ -1383,6 +1379,31 @@
             ensureStaffInCategory(staffConfig.rlhTherapists, "rlhTherapists");
             ensureStaffInCategory(staffConfig.banksideReceptionists, "banksideAdmins");
             ensureStaffInCategory(staffConfig.banksideAttendance, "banksideAttendance");
+            
+            // Проверяем отдельно Chris - убираем его из RLH Therapists, если он там оказался
+            for (let i = 0; i < allStaffByCategory.rlhTherapists.length; i++) {
+                const staff = allStaffByCategory.rlhTherapists[i];
+                if (staff.name === "Chris" || (staff.baseName && staff.baseName === "Chris")) {
+                    console.log("Удаляем Chris из списка RLH Therapists, так как он относится к East");
+                    
+                    // Проверка наличия смен в RLH
+                    let hasRlhShift = false;
+                    if (staff.shifts) {
+                        for (const shift of staff.shifts) {
+                            if (shift.location === "RLH") {
+                                hasRlhShift = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Если у Chris нет смен в RLH, удаляем его из списка
+                    if (!hasRlhShift) {
+                        allStaffByCategory.rlhTherapists.splice(i, 1);
+                        i--; // Корректируем индекс после удаления
+                    }
+                }
+            }
             
             // Заполняем таблицы данными
             for (const category in allStaffByCategory) {
@@ -2772,25 +2793,41 @@
             // Combine all staff into one list
             let allStaff = [];
             
+            // Для отслеживания уникальности сотрудников сразу при добавлении
+            const addedStaffNames = new Set();
+            
             // Add regular staff from all categories
             for (const category in allStaffByCategory) {
                 if (allStaffByCategory[category] && Array.isArray(allStaffByCategory[category])) {
                     debugInfo += `<p>Категория: ${category}, сотрудников: ${allStaffByCategory[category].length}</p>`;
                     
                     for (const staff of allStaffByCategory[category]) {
-                        // Добавляем информацию о домашней локации и должности
-                        const homeLocation = getStaffHomeLocation(staff.name);
-                        const position = getStaffPosition(staff.name);
+                        // Проверяем, не добавлен ли уже этот сотрудник
+                        // Используем имя без скобок для сравнения
+                        const baseName = staff.name.split('(')[0].trim();
                         
-                        debugInfo += `<p>Сотрудник: ${staff.name}, домашняя локация: ${homeLocation}, должность: ${position}</p>`;
+                        if (addedStaffNames.has(baseName)) {
+                            debugInfo += `<p>Сотрудник: ${staff.name} (базовое имя: ${baseName}) уже добавлен ранее, пропускаем</p>`;
+                            continue;
+                        }
+                        
+                        // Добавляем информацию о домашней локации и должности
+                        const homeLocation = getStaffHomeLocation(baseName);
+                        const position = getStaffPosition(baseName);
+                        
+                        debugInfo += `<p>Сотрудник: ${staff.name}, базовое имя: ${baseName}, домашняя локация: ${homeLocation}, должность: ${position}</p>`;
                         
                         allStaff.push({
                             name: staff.name,
+                            baseName: baseName,
                             homeLocation: homeLocation,
                             position: position,
                             schedule: staff.schedule,
                             originalRow: staff.originalRow // Сохраняем номер строки в исходных данных
                         });
+                        
+                        // Отмечаем сотрудника как добавленного
+                        addedStaffNames.add(baseName);
                     }
                 }
             }
@@ -2798,22 +2835,32 @@
             // Add guest staff
             if (guestStaff && guestStaff.length > 0) {
                 debugInfo += `<p>Приглашенных сотрудников: ${guestStaff.length}</p>`;
-                allStaff = allStaff.concat(guestStaff);
+                
+                for (const guest of guestStaff) {
+                    // Получаем базовое имя без скобок
+                    const baseName = guest.name.split('(')[0].trim();
+                    
+                    // Проверяем, не добавлен ли уже этот сотрудник
+                    if (addedStaffNames.has(baseName)) {
+                        debugInfo += `<p>Гостевой сотрудник: ${guest.name} (базовое имя: ${baseName}) уже добавлен ранее, пропускаем</p>`;
+                        continue;
+                    }
+                    
+                    // Добавляем базовое имя в гостевой объект
+                    guest.baseName = baseName;
+                    
+                    allStaff.push(guest);
+                    // Отмечаем сотрудника как добавленного
+                    addedStaffNames.add(baseName);
+                }
             }
             
             console.log(`Total staff for analytics: ${allStaff.length}`);
             debugInfo += `<p>Всего сотрудников для аналитики: ${allStaff.length}</p>`;
             
-            // Удаляем дубликаты сотрудников (по имени)
-            const uniqueStaff = [];
-            const staffNames = new Set();
-            
-            for (const staff of allStaff) {
-                if (!staffNames.has(staff.name)) {
-                    staffNames.add(staff.name);
-                    uniqueStaff.push(staff);
-                }
-            }
+            // В этой версии нам не нужна дополнительная проверка на уникальность,
+            // т.к. мы уже отслеживаем уникальность при добавлении сотрудников
+            const uniqueStaff = allStaff;
             
             console.log(`Unique staff for analytics: ${uniqueStaff.length}`);
             debugInfo += `<p>Уникальных сотрудников для аналитики: ${uniqueStaff.length}</p>`;
