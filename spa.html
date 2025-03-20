@@ -838,14 +838,14 @@
     <script>
         // Configuration for staff
         const staffConfig = {
-            seniorSupervisors: ["Larysa", "Umarin"],
-            seniorReceptionists: ["Tanvi"],
-            eastReceptionists: ["Larysa", "Ioana", "Vadym", "Fatimah"],
-            eastAttendance: ["Alex", "Nandini", "Sakshi", "Dhruva", "Harshie", "Rajvee", "Apoorva"],
-            eastTherapists: ["Agata", "Carmilla", "Andrea", "Simone", "Isabella", "Prem", "Siobhan", "Chris", "Sophie", "Iskra"],
+            seniorSupervisors: ["Larysa", "Umarin (SS)"],
+            seniorReceptionists: ["Tanvi (SR)"],
+            eastReceptionists: ["Larysa","Ioana", "Vadym", "Fatimah"],
+            eastAttendance: ["Alex", "Nandini", "Rajvee", "Rajvee", "Riya", "Al Rafi", "Apoorva", "Rejina"],
+            eastTherapists: ["Agata", "Carmilla", "Andrea", "Simone", "Isabella", "Prem", "Siobhan", "Chris", "Sophie", "Aldona"],
             rlhReceptionists: ["Tanvi", "Umarin"],
-            rlhAttendance: ["Veska", "Maksim", "Malcan", "Dipali", "Arpit", "Rashmi"],
-            rlhTherapists: ["Shiv", "Bea", "Christine", "Guido", "Sara", "Mihaela", "Ashley", "Aldona"],
+            rlhAttendance: ["Naveen", "Veska", "Maksim", "Malcan", "Sakshi", "Arpit", "Rashmi"],
+            rlhTherapists: ["Shiv", "Bea", "Christine", "Iskra", "Sara", "Mihaela", "Ashley"],
             banksideReceptionists: ["Aditya", "Naveen"],
             banksideAttendance: ["Elisa", "Fatim*"]
         };
@@ -861,10 +861,47 @@
         // Сопоставление для приглашенных сотрудников
         const guestStaffHome = {
             "Larysa": "East",
+            "Ioana": "East",
+            "Vadym": "East",
+            "Fatimah": "East",
+            "Alex": "East",
+            "Nandini": "East",
+            "Rajvee": "East",
+            "Apoorva": "East",
+            "Rejina": "East",
+            "Riya": "East",
+            "Al Rafi": "East",
+            "Agata": "East",
+            "Carmilla": "East",
+            "Andrea": "East",
+            "Simone": "East",
+            "Isabella": "East",
+            "Prem": "East",
+            "Siobhan": "East",
+            "Chris": "East",
+            "Sophie": "East",
+            "Aldona": "East",
+            "Tanvi": "RLH",
+            "Naveen": "RLH",
+            "Veska": "RLH",
+            "Maksim": "RLH",
+            "Malcan": "RLH",
+            "Sakshi": "RLH",
+            "Arpit": "RLH",
+            "Rashmi": "RLH",
             "Umarin": "RLH",
+            "Umarin (SS)": "RLH",
             "Shiv": "RLH",
+            "Ashle": "RLH",
+            "Tanvi (SR)": "RLH",
+            "Iskra": "RLH",
             "Ashley": "RLH",
-            "Guido": "RLH"
+            "Maria": "Bankside",
+            "Aditya": "Bankside",
+            "Bea": "RLH",
+            "Christine": "RLH",
+            "Sara": "RLH",
+            "Mihaela": "RLH",
         };
         
         // Функция для определения цвета ячейки на основе значения
@@ -2499,9 +2536,22 @@
                 return totalHours;
             }
             
-            // Если не удалось распознать формат, предполагаем стандартную 8-часовую смену
-            console.log(`Не удалось распознать формат смены: ${shift}, используем стандартные 8 часов (после вычета 30 минут: 7.5)`);
-            return 7.5; // 8 часов минус 30 минут (0.5 часа)
+            // Если не удалось распознать формат, добавляем в список нераспознанных смен
+            console.log(`Не удалось распознать формат смены: ${shift}, возвращаем 0 часов`);
+            
+            // Инициализируем массив для нераспознанных смен, если его еще нет
+            if (!window.unrecognizedShifts) {
+                window.unrecognizedShifts = [];
+            }
+            
+            // Добавляем информацию о нераспознанной смене
+            window.unrecognizedShifts.push({
+                shift: shift,
+                staffName: window.currentProcessingStaffName || 'Неизвестно'
+            });
+            
+            // Возвращаем 0 часов вместо стандартных 7.5
+            return 0;
         }
         
         // Function to get cell color for a staff member on a specific day
@@ -2788,7 +2838,7 @@
             console.log("Calculating analytics...");
             
             // Создаем отладочный элемент для вывода информации
-            let debugInfo = "<h3>Отладочная информация по аналитике</h3>";
+            let debugInfo = "<h3>Debug information for analytics</h3>";
             
             // Combine all staff into one list
             let allStaff = [];
@@ -2799,7 +2849,7 @@
             // Add regular staff from all categories
             for (const category in allStaffByCategory) {
                 if (allStaffByCategory[category] && Array.isArray(allStaffByCategory[category])) {
-                    debugInfo += `<p>Категория: ${category}, сотрудников: ${allStaffByCategory[category].length}</p>`;
+                    debugInfo += `<p>Category: ${category}, employees: ${allStaffByCategory[category].length}</p>`;
                     
                     for (const staff of allStaffByCategory[category]) {
                         // Проверяем, не добавлен ли уже этот сотрудник
@@ -2807,7 +2857,7 @@
                         const baseName = staff.name.split('(')[0].trim();
                         
                         if (addedStaffNames.has(baseName)) {
-                            debugInfo += `<p>Сотрудник: ${staff.name} (базовое имя: ${baseName}) уже добавлен ранее, пропускаем</p>`;
+                            debugInfo += `<p>Employee: ${staff.name} (base name: ${baseName})  already added, skipping</p>`;
                             continue;
                         }
                         
@@ -2815,7 +2865,7 @@
                         const homeLocation = getStaffHomeLocation(baseName);
                         const position = getStaffPosition(baseName);
                         
-                        debugInfo += `<p>Сотрудник: ${staff.name}, базовое имя: ${baseName}, домашняя локация: ${homeLocation}, должность: ${position}</p>`;
+                        debugInfo += `<p>Employee: ${staff.name}, base name: ${baseName}, home location: ${homeLocation}, position: ${position}</p>`;
                         
                         allStaff.push({
                             name: staff.name,
@@ -2834,7 +2884,7 @@
             
             // Add guest staff
             if (guestStaff && guestStaff.length > 0) {
-                debugInfo += `<p>Приглашенных сотрудников: ${guestStaff.length}</p>`;
+                debugInfo += `<p>Guest staff: ${guestStaff.length}</p>`;
                 
                 for (const guest of guestStaff) {
                     // Получаем базовое имя без скобок
@@ -2842,7 +2892,7 @@
                     
                     // Проверяем, не добавлен ли уже этот сотрудник
                     if (addedStaffNames.has(baseName)) {
-                        debugInfo += `<p>Гостевой сотрудник: ${guest.name} (базовое имя: ${baseName}) уже добавлен ранее, пропускаем</p>`;
+                        debugInfo += `<p>Guest employee: ${guest.name} (base name: ${baseName}) already added, skipping</p>`;
                         continue;
                     }
                     
@@ -2856,14 +2906,14 @@
             }
             
             console.log(`Total staff for analytics: ${allStaff.length}`);
-            debugInfo += `<p>Всего сотрудников для аналитики: ${allStaff.length}</p>`;
+            debugInfo += `<p>Total staff for analytics: ${allStaff.length}</p>`;
             
             // В этой версии нам не нужна дополнительная проверка на уникальность,
             // т.к. мы уже отслеживаем уникальность при добавлении сотрудников
             const uniqueStaff = allStaff;
             
             console.log(`Unique staff for analytics: ${uniqueStaff.length}`);
-            debugInfo += `<p>Уникальных сотрудников для аналитики: ${uniqueStaff.length}</p>`;
+            debugInfo += `<p>Unique staff for analytics: ${uniqueStaff.length}</p>`;
             
             // Рассчитываем часы для каждого сотрудника
             for (const staff of uniqueStaff) {
@@ -2875,7 +2925,7 @@
                 staff.rlhHours = 0;
                 staff.banksideHours = 0;
                 
-                debugInfo += `<h4>Расчет часов для ${staff.name}</h4>`;
+                debugInfo += `<h4>Calculation for ${staff.name}</h4>`;
                 debugInfo += `<ul>`;
                 
                 // Проходим по расписанию и считаем часы
@@ -2887,6 +2937,9 @@
                         if (!shift || shift === "X" || shift === "XR" || shift === "HOL" || shift === "TR" || shift === "sick") {
                             continue;
                         }
+                        
+                        // Сохраняем имя текущего обрабатываемого сотрудника для отслеживания нераспознанных смен
+                        window.currentProcessingStaffName = staff.name;
                         
                         // Рассчитываем часы для смены
                         const hours = calculateHoursFromShift(shift);
@@ -2918,12 +2971,13 @@
                             }
                         }
                         
+                        
                         // Если все еще не удалось определить локацию, используем домашнюю
                         if (!shiftLocation) {
                             shiftLocation = staff.homeLocation;
                         }
                         
-                        debugInfo += `<li>День ${i+1}, смена: ${shift}, часы: ${hours}, локация: ${shiftLocation || 'неизвестно'}</li>`;
+                        debugInfo += `<li>Day ${i+1}, shift: ${shift}, hours: ${hours}, location: ${shiftLocation || 'unknown'}</li>`;
                         
                         // Добавляем часы к соответствующим счетчикам
                         staff.totalHours += hours;
@@ -2956,21 +3010,21 @@
                 }
                 
                 debugInfo += `</ul>`;
-                debugInfo += `<p>Итого для ${staff.name}: всего часов: ${staff.totalHours.toFixed(1)}, домашние: ${staff.homeHours.toFixed(1)}, гостевые: ${staff.guestHours.toFixed(1)}, East: ${staff.eastHours.toFixed(1)}, RLH: ${staff.rlhHours.toFixed(1)}, Bankside: ${staff.banksideHours.toFixed(1)}</p>`;
+                debugInfo += `<p>Total for ${staff.name}: total hours ${staff.totalHours.toFixed(1)}, home: ${staff.homeHours.toFixed(1)}, guest: ${staff.guestHours.toFixed(1)}, East: ${staff.eastHours.toFixed(1)}, RLH: ${staff.rlhHours.toFixed(1)}, Bankside: ${staff.banksideHours.toFixed(1)}</p>`;
                 
                 // Проверяем на отрицательные значения
                 if (staff.totalHours < 0 || staff.homeHours < 0 || staff.guestHours < 0 || 
                     staff.eastHours < 0 || staff.rlhHours < 0 || staff.banksideHours < 0) {
-                    debugInfo += `<p style="color: red; font-weight: bold">ВНИМАНИЕ! Обнаружены отрицательные значения для ${staff.name}!</p>`;
+                    debugInfo += `<p style="color: red; font-weight: bold">Attention! Detected negative values for ${staff.name}!</p>`;
                 }
                 
                 // Проверяем на несоответствие сумм
                 if (Math.abs(staff.totalHours - (staff.homeHours + staff.guestHours)) > 0.1) {
-                    debugInfo += `<p style="color: red; font-weight: bold">ВНИМАНИЕ! Несоответствие сумм для ${staff.name}: totalHours (${staff.totalHours.toFixed(1)}) ≠ homeHours (${staff.homeHours.toFixed(1)}) + guestHours (${staff.guestHours.toFixed(1)}) = ${(staff.homeHours + staff.guestHours).toFixed(1)}</p>`;
+                    debugInfo += `<p style="color: red; font-weight: bold">Attention! Sum mismatch for ${staff.name}: totalHours (${staff.totalHours.toFixed(1)}) ≠ homeHours (${staff.homeHours.toFixed(1)}) + guestHours (${staff.guestHours.toFixed(1)}) = ${(staff.homeHours + staff.guestHours).toFixed(1)}</p>`;
                 }
                 
                 if (Math.abs(staff.totalHours - (staff.eastHours + staff.rlhHours + staff.banksideHours)) > 0.1) {
-                    debugInfo += `<p style="color: red; font-weight: bold">ВНИМАНИЕ! Несоответствие сумм для ${staff.name}: totalHours (${staff.totalHours.toFixed(1)}) ≠ eastHours (${staff.eastHours.toFixed(1)}) + rlhHours (${staff.rlhHours.toFixed(1)}) + banksideHours (${staff.banksideHours.toFixed(1)}) = ${(staff.eastHours + staff.rlhHours + staff.banksideHours).toFixed(1)}</p>`;
+                    debugInfo += `<p style="color: red; font-weight: bold">Attention! Sum mismatch for ${staff.name}: totalHours (${staff.totalHours.toFixed(1)}) ≠ eastHours (${staff.eastHours.toFixed(1)}) + rlhHours (${staff.rlhHours.toFixed(1)}) + banksideHours (${staff.banksideHours.toFixed(1)}) = ${(staff.eastHours + staff.rlhHours + staff.banksideHours).toFixed(1)}</p>`;
                 }
             }
             
@@ -3010,18 +3064,18 @@
                 }
             }
             
-            debugInfo += `<h4>Итоговые часы по локациям:</h4>`;
+            debugInfo += `<h4>Total hours by locations:</h4>`;
             for (const location in locationHours) {
-                debugInfo += `<p>${location}: всего: ${locationHours[location].total.toFixed(1)}, домашние: ${locationHours[location].home.toFixed(1)}, гостевые: ${locationHours[location].guest.toFixed(1)}</p>`;
+                debugInfo += `<p>${location}: total: ${locationHours[location].total.toFixed(1)}, hhome: ${locationHours[location].home.toFixed(1)}, guest: ${locationHours[location].guest.toFixed(1)}</p>`;
                 
                 // Проверяем на отрицательные значения
                 if (locationHours[location].total < 0 || locationHours[location].home < 0 || locationHours[location].guest < 0) {
-                    debugInfo += `<p style="color: red; font-weight: bold">ВНИМАНИЕ! Обнаружены отрицательные значения для локации ${location}!</p>`;
+                    debugInfo += `<p style="color: red; font-weight: bold">Attention! Detected negative values for ${location}!</p>`;
                 }
                 
                 // Проверяем на несоответствие сумм
                 if (Math.abs(locationHours[location].total - (locationHours[location].home + locationHours[location].guest)) > 0.1) {
-                    debugInfo += `<p style="color: red; font-weight: bold">ВНИМАНИЕ! Несоответствие сумм для локации ${location}: total (${locationHours[location].total.toFixed(1)}) ≠ home (${locationHours[location].home.toFixed(1)}) + guest (${locationHours[location].guest.toFixed(1)}) = ${(locationHours[location].home + locationHours[location].guest).toFixed(1)}</p>`;
+                    debugInfo += `<p style="color: red; font-weight: bold">Attention! Sum mismatch for ${location}: total (${locationHours[location].total.toFixed(1)}) ≠ home (${locationHours[location].home.toFixed(1)}) + guest (${locationHours[location].guest.toFixed(1)}) = ${(locationHours[location].home + locationHours[location].guest).toFixed(1)}</p>`;
                 }
             }
             
@@ -3049,24 +3103,113 @@
                 positionHours[position].bankside += staff.banksideHours;
             }
             
-            debugInfo += `<h4>Итоговые часы по должностям:</h4>`;
+            debugInfo += `<h4>Total hours by positions:</h4>`;
             for (const position in positionHours) {
                 debugInfo += `<p>${position}: всего: ${positionHours[position].total.toFixed(1)}, East: ${positionHours[position].east.toFixed(1)}, RLH: ${positionHours[position].rlh.toFixed(1)}, Bankside: ${positionHours[position].bankside.toFixed(1)}</p>`;
                 
                 // Проверяем на отрицательные значения
                 if (positionHours[position].total < 0 || positionHours[position].east < 0 || 
                     positionHours[position].rlh < 0 || positionHours[position].bankside < 0) {
-                    debugInfo += `<p style="color: red; font-weight: bold">ВНИМАНИЕ! Обнаружены отрицательные значения для должности ${position}!</p>`;
+                    debugInfo += `<p style="color: red; font-weight: bold">Attention! Detected negative values for ${position}!</p>`;
                 }
                 
                 // Проверяем на несоответствие сумм
                 if (Math.abs(positionHours[position].total - (positionHours[position].east + positionHours[position].rlh + positionHours[position].bankside)) > 0.1) {
-                    debugInfo += `<p style="color: red; font-weight: bold">ВНИМАНИЕ! Несоответствие сумм для должности ${position}: total (${positionHours[position].total.toFixed(1)}) ≠ east (${positionHours[position].east.toFixed(1)}) + rlh (${positionHours[position].rlh.toFixed(1)}) + bankside (${positionHours[position].bankside.toFixed(1)}) = ${(positionHours[position].east + positionHours[position].rlh + positionHours[position].bankside).toFixed(1)}</p>`;
+                    debugInfo += `<p style="color: red; font-weight: bold">WARNING! Sum mismatch for position ${position}: total (${positionHours[position].total.toFixed(1)}) ≠ east (${positionHours[position].east.toFixed(1)}) + rlh (${positionHours[position].rlh.toFixed(1)}) + bankside (${positionHours[position].bankside.toFixed(1)}) = ${(positionHours[position].east + positionHours[position].rlh + positionHours[position].bankside).toFixed(1)}</p>`;
                 }
             }
             
             // Заполняем таблицу с часами по должностям
             populatePositionHoursTable(positionHours);
+            
+            // Создаем список терапевтов для отладки
+            let therapistsInfo = "<h4>Detailed information about therapists:</h4>";
+            therapistsInfo += "<table style='width:100%; border-collapse: collapse;'>";
+            therapistsInfo += "<tr style='background-color: #f2f2f2;'><th style='border: 1px solid #ddd; padding: 8px; text-align: left;'>Name</th><th style='border: 1px solid #ddd; padding: 8px; text-align: left;'>Home Location</th><th style='border: 1px solid #ddd; padding: 8px; text-align: right;'>Total Hours</th><th style='border: 1px solid #ddd; padding: 8px; text-align: right;'>East Hours</th><th style='border: 1px solid #ddd; padding: 8px; text-align: right;'>RLH Hours</th><th style='border: 1px solid #ddd; padding: 8px; text-align: right;'>Bankside Hours</th><th style='border: 1px solid #ddd; padding: 8px; text-align: left;'>Schedule</th></tr>";
+            
+            // Отфильтровываем только терапевтов
+            const therapists = uniqueStaff.filter(staff => staff.position === "Therapist");
+            
+            // Сортируем терапевтов по имени
+            therapists.sort((a, b) => a.name.localeCompare(b.name));
+            
+            for (const therapist of therapists) {
+                therapistsInfo += `<tr style='border: 1px solid #ddd;'>`;
+                therapistsInfo += `<td style='border: 1px solid #ddd; padding: 8px;'>${therapist.name}</td>`;
+                therapistsInfo += `<td style='border: 1px solid #ddd; padding: 8px;'>${therapist.homeLocation || 'Unknown'}</td>`;
+                therapistsInfo += `<td style='border: 1px solid #ddd; padding: 8px; text-align: right;'>${therapist.totalHours.toFixed(1)}</td>`;
+                therapistsInfo += `<td style='border: 1px solid #ddd; padding: 8px; text-align: right;'>${therapist.eastHours.toFixed(1)}</td>`;
+                therapistsInfo += `<td style='border: 1px solid #ddd; padding: 8px; text-align: right;'>${therapist.rlhHours.toFixed(1)}</td>`;
+                therapistsInfo += `<td style='border: 1px solid #ddd; padding: 8px; text-align: right;'>${therapist.banksideHours.toFixed(1)}</td>`;
+                
+                // Добавляем информацию о расписании
+                let scheduleInfo = '<table style="width:100%; border-collapse: collapse;">';
+                scheduleInfo += '<tr style="background-color: #f9f9f9;"><th style="border: 1px solid #ddd; padding: 4px;">Day</th><th style="border: 1px solid #ddd; padding: 4px;">Shift</th><th style="border: 1px solid #ddd; padding: 4px;">Hours</th><th style="border: 1px solid #ddd; padding: 4px;">Location</th></tr>';
+                
+                if (therapist.schedule && Array.isArray(therapist.schedule)) {
+                    for (let i = 0; i < therapist.schedule.length; i++) {
+                        const shift = therapist.schedule[i];
+                        
+                        // Пропускаем выходные и больничные
+                        if (!shift || shift === "X" || shift === "XR" || shift === "HOL" || shift === "TR" || shift === "sick" || shift === "Training") {
+                            continue;
+                        }
+                        
+                        // Рассчитываем часы для смены
+                        const hours = calculateHoursFromShift(shift);
+                        
+                        // Определяем локацию для смены
+                        let shiftLocation = null;
+                        
+                        // Получаем цвет ячейки для определения локации
+                        const cellColor = getCellColorForDay(therapist.name, i, headerInfo);
+                        
+                        if (cellColor) {
+                            // Определяем локацию по цвету ячейки
+                            if (isSimilarColor(cellColor, locationColors.East)) {
+                                shiftLocation = "East";
+                            } else if (isSimilarColor(cellColor, locationColors.RLH)) {
+                                shiftLocation = "RLH";
+                            } else if (isSimilarColor(cellColor, locationColors.Bankside)) {
+                                shiftLocation = "Bankside";
+                            }
+                        }
+                        
+                        // Если не удалось определить локацию по цвету, проверяем гостевые смены
+                        if (!shiftLocation && therapist.shifts && Array.isArray(therapist.shifts)) {
+                            for (const guestShift of therapist.shifts) {
+                                if (guestShift.day === i) {
+                                    shiftLocation = guestShift.location;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // Если все еще не удалось определить локацию, используем домашнюю
+                        if (!shiftLocation) {
+                            shiftLocation = therapist.homeLocation;
+                        }
+                        
+                        // Добавляем строку о смене
+                        scheduleInfo += `<tr style="border: 1px solid #ddd;">`;
+                        scheduleInfo += `<td style="border: 1px solid #ddd; padding: 4px;">${i+1}</td>`;
+                        scheduleInfo += `<td style="border: 1px solid #ddd; padding: 4px;">${shift}</td>`;
+                        scheduleInfo += `<td style="border: 1px solid #ddd; padding: 4px; text-align: right;">${hours.toFixed(1)}</td>`;
+                        scheduleInfo += `<td style="border: 1px solid #ddd; padding: 4px;">${shiftLocation || 'Unknown'}</td>`;
+                        scheduleInfo += `</tr>`;
+                    }
+                }
+                
+                scheduleInfo += '</table>';
+                
+                therapistsInfo += `<td style='border: 1px solid #ddd; padding: 8px;'>${scheduleInfo}</td>`;
+                therapistsInfo += `</tr>`;
+            }
+            
+            therapistsInfo += "</table>";
+            
+            // Добавляем информацию о терапевтах в отладочную информацию
+            debugInfo += therapistsInfo;
             
             // Создаем элемент для отладочной информации
             const debugElement = document.createElement('div');
@@ -3080,17 +3223,17 @@
             debugElement.style.overflow = 'auto';
             debugElement.innerHTML = debugInfo;
             
-            // Добавляем кнопку для показа/скрытия отладочной информации
+            // Добавляем отладочную кнопку
             const debugButton = document.createElement('button');
-            debugButton.textContent = 'Show Analytics Debug Info';
-            debugButton.style.marginTop = '10px';
-            debugButton.style.padding = '5px 10px';
-            debugButton.style.backgroundColor = '#f0f0f0';
-            debugButton.style.border = '1px solid #ddd';
-            debugButton.style.borderRadius = '4px';
+            debugButton.style.marginTop = '20px';
+            debugButton.style.padding = '8px 15px';
+            debugButton.style.backgroundColor = '#4CAF50';
+            debugButton.style.color = 'white';
+            debugButton.style.border = 'none';
             debugButton.style.cursor = 'pointer';
-            
-            debugButton.onclick = function() {
+            debugButton.style.borderRadius = '4px';
+            debugButton.textContent = 'Show Analytics Debug Info';
+            debugButton.addEventListener('click', function() {
                 const debugElement = document.getElementById('analyticsDebugInfo');
                 if (debugElement.style.display === 'none') {
                     debugElement.style.display = 'block';
@@ -3099,12 +3242,1407 @@
                     debugElement.style.display = 'none';
                     this.textContent = 'Show Analytics Debug Info';
                 }
-            };
+            });
             
-            // Добавляем элементы на страницу
+            // Кнопка для показа только терапевтов
+            const therapistsButton = document.createElement('button');
+            therapistsButton.style.marginTop = '20px';
+            therapistsButton.style.marginLeft = '10px';
+            therapistsButton.style.padding = '8px 15px';
+            therapistsButton.style.backgroundColor = '#2196F3';
+            therapistsButton.style.color = 'white';
+            therapistsButton.style.border = 'none';
+            therapistsButton.style.cursor = 'pointer';
+            therapistsButton.style.borderRadius = '4px';
+            therapistsButton.textContent = 'Show Therapists Information';
+            therapistsButton.addEventListener('click', function() {
+                showTherapistsInfo(uniqueStaff, headerInfo);
+            });
+            
+            // Кнопка для показа администраторов
+            const adminsButton = document.createElement('button');
+            adminsButton.style.marginTop = '20px';
+            adminsButton.style.marginLeft = '10px';
+            adminsButton.style.padding = '8px 15px';
+            adminsButton.style.backgroundColor = '#9C27B0';
+            adminsButton.style.color = 'white';
+            adminsButton.style.border = 'none';
+            adminsButton.style.cursor = 'pointer';
+            adminsButton.style.borderRadius = '4px';
+            adminsButton.textContent = 'Show Administrators Information';
+            adminsButton.addEventListener('click', function() {
+                showAdminsInfo(uniqueStaff, headerInfo);
+            });
+            
+            // Кнопка для показа специалистов по приему
+            const attendanceButton = document.createElement('button');
+            attendanceButton.style.marginTop = '20px';
+            attendanceButton.style.marginLeft = '10px';
+            attendanceButton.style.padding = '8px 15px';
+            attendanceButton.style.backgroundColor = '#009688';
+            attendanceButton.style.color = 'white';
+            attendanceButton.style.border = 'none';
+            attendanceButton.style.cursor = 'pointer';
+            attendanceButton.style.borderRadius = '4px';
+            attendanceButton.textContent = 'Show Attendance Information';
+            attendanceButton.addEventListener('click', function() {
+                showAttendanceInfo(uniqueStaff, headerInfo);
+            });
+            
+            // Кнопка для показа нераспознанных смен
+            const unrecognizedShiftsButton = document.createElement('button');
+            unrecognizedShiftsButton.style.marginTop = '20px';
+            unrecognizedShiftsButton.style.marginLeft = '10px';
+            unrecognizedShiftsButton.style.padding = '8px 15px';
+            unrecognizedShiftsButton.style.backgroundColor = '#FF5722';
+            unrecognizedShiftsButton.style.color = 'white';
+            unrecognizedShiftsButton.style.border = 'none';
+            unrecognizedShiftsButton.style.cursor = 'pointer';
+            unrecognizedShiftsButton.style.borderRadius = '4px';
+            unrecognizedShiftsButton.textContent = 'Show Unrecognized Shifts';
+            unrecognizedShiftsButton.addEventListener('click', function() {
+                showUnrecognizedShifts();
+            });
+            
             const analyticsTab = document.getElementById('analytics-tab');
             analyticsTab.appendChild(debugButton);
+            analyticsTab.appendChild(therapistsButton);
+            analyticsTab.appendChild(adminsButton);
+            analyticsTab.appendChild(attendanceButton);
+            analyticsTab.appendChild(unrecognizedShiftsButton);
             analyticsTab.appendChild(debugElement);
+        }
+        
+        // Функция для показа информации об администраторах в модальном окне
+        function showAdminsInfo(staffList, headerInfo) {
+            // Отфильтровываем только администраторов с хотя бы одной сменой
+            const admins = staffList.filter(staff => 
+                (staff.position === "Senior Supervisor" || 
+                staff.position === "Senior Receptionist" || 
+                staff.position === "Receptionist") &&
+                staff.totalHours > 0 // Проверяем, что у сотрудника есть хотя бы одна смена
+            );
+            
+            // Сортируем администраторов по имени
+            admins.sort((a, b) => a.name.localeCompare(b.name));
+            
+            // Создаем модальное окно
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.left = '0';
+            modal.style.top = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.7)';
+            modal.style.zIndex = '1000';
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+            
+            // Создаем контент модального окна
+            const modalContent = document.createElement('div');
+            modalContent.style.backgroundColor = '#fff';
+            modalContent.style.padding = '20px';
+            modalContent.style.borderRadius = '5px';
+            modalContent.style.maxWidth = '90%';
+            modalContent.style.maxHeight = '90%';
+            modalContent.style.overflowY = 'auto';
+            
+            // Создаем кнопку закрытия
+            const closeButton = document.createElement('button');
+            closeButton.style.position = 'sticky';
+            closeButton.style.top = '0';
+            closeButton.style.right = '0';
+            closeButton.style.padding = '8px 15px';
+            closeButton.style.backgroundColor = '#f44336';
+            closeButton.style.color = 'white';
+            closeButton.style.border = 'none';
+            closeButton.style.cursor = 'pointer';
+            closeButton.style.borderRadius = '4px';
+            closeButton.style.float = 'right';
+            closeButton.textContent = 'Close';
+            closeButton.addEventListener('click', function() {
+                document.body.removeChild(modal);
+            });
+            
+            modalContent.appendChild(closeButton);
+            
+            // Создаем таблицу с информацией об администраторах
+            const adminsInfo = document.createElement('div');
+            adminsInfo.innerHTML = "<h3>Detailed Administrators Information</h3>";
+            
+            const table = document.createElement('table');
+            table.style.width = '100%';
+            table.style.borderCollapse = 'collapse';
+            table.style.marginTop = '20px';
+            
+            // Создаем заголовок таблицы
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            headerRow.style.backgroundColor = '#f2f2f2';
+            
+            const headers = ['Name', 'Home Location', 'Total Hours', 'East Hours', 'RLH Hours', 'Bankside Hours', 'Schedule'];
+            
+            headers.forEach(headerText => {
+                const th = document.createElement('th');
+                th.style.border = '1px solid #ddd';
+                th.style.padding = '8px';
+                th.style.textAlign = headerText.includes('Hours') ? 'right' : 'left';
+                th.textContent = headerText;
+                headerRow.appendChild(th);
+            });
+            
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // Создаем тело таблицы
+            const tbody = document.createElement('tbody');
+            
+            // Создаем переменные для подсчета общей суммы часов
+            let totalHoursSum = 0;
+            let eastHoursSum = 0;
+            let rlhHoursSum = 0;
+            let banksideHoursSum = 0;
+            
+            for (const admin of admins) {
+                const row = document.createElement('tr');
+                row.style.border = '1px solid #ddd';
+                
+                // Имя
+                const nameCell = document.createElement('td');
+                nameCell.style.border = '1px solid #ddd';
+                nameCell.style.padding = '8px';
+                nameCell.textContent = admin.name;
+                row.appendChild(nameCell);
+                
+                // Домашняя локация
+                const locationCell = document.createElement('td');
+                locationCell.style.border = '1px solid #ddd';
+                locationCell.style.padding = '8px';
+                locationCell.textContent = admin.homeLocation || 'Unknown';
+                row.appendChild(locationCell);
+                
+                // Всего часов
+                const totalHoursCell = document.createElement('td');
+                totalHoursCell.style.border = '1px solid #ddd';
+                totalHoursCell.style.padding = '8px';
+                totalHoursCell.style.textAlign = 'right';
+                totalHoursCell.textContent = admin.totalHours.toFixed(1);
+                row.appendChild(totalHoursCell);
+                
+                // Добавляем к общей сумме
+                totalHoursSum += admin.totalHours;
+                
+                // East часы
+                const eastHoursCell = document.createElement('td');
+                eastHoursCell.style.border = '1px solid #ddd';
+                eastHoursCell.style.padding = '8px';
+                eastHoursCell.style.textAlign = 'right';
+                eastHoursCell.textContent = admin.eastHours.toFixed(1);
+                if (admin.eastHours > 0) {
+                    eastHoursCell.style.backgroundColor = '#e8f5e9';
+                }
+                row.appendChild(eastHoursCell);
+                
+                // Добавляем к сумме East
+                eastHoursSum += admin.eastHours;
+                
+                // RLH часы
+                const rlhHoursCell = document.createElement('td');
+                rlhHoursCell.style.border = '1px solid #ddd';
+                rlhHoursCell.style.padding = '8px';
+                rlhHoursCell.style.textAlign = 'right';
+                rlhHoursCell.textContent = admin.rlhHours.toFixed(1);
+                if (admin.rlhHours > 0) {
+                    rlhHoursCell.style.backgroundColor = '#e3f2fd';
+                }
+                row.appendChild(rlhHoursCell);
+                
+                // Добавляем к сумме RLH
+                rlhHoursSum += admin.rlhHours;
+                
+                // Bankside часы
+                const banksideHoursCell = document.createElement('td');
+                banksideHoursCell.style.border = '1px solid #ddd';
+                banksideHoursCell.style.padding = '8px';
+                banksideHoursCell.style.textAlign = 'right';
+                banksideHoursCell.textContent = admin.banksideHours.toFixed(1);
+                if (admin.banksideHours > 0) {
+                    banksideHoursCell.style.backgroundColor = '#f5f5f5';
+                }
+                row.appendChild(banksideHoursCell);
+                
+                // Добавляем к сумме Bankside
+                banksideHoursSum += admin.banksideHours;
+                
+                // Расписание
+                const scheduleCell = document.createElement('td');
+                scheduleCell.style.border = '1px solid #ddd';
+                scheduleCell.style.padding = '8px';
+                
+                // Создаем таблицу расписания
+                const scheduleTable = document.createElement('table');
+                scheduleTable.style.width = '100%';
+                scheduleTable.style.borderCollapse = 'collapse';
+                
+                // Заголовок таблицы расписания
+                const scheduleHeaderRow = document.createElement('tr');
+                scheduleHeaderRow.style.backgroundColor = '#f9f9f9';
+                
+                const scheduleHeaders = ['Day', 'Shift', 'Hours', 'Location'];
+                
+                scheduleHeaders.forEach(headerText => {
+                    const th = document.createElement('th');
+                    th.style.border = '1px solid #ddd';
+                    th.style.padding = '4px';
+                    th.style.textAlign = headerText === 'Hours' ? 'right' : 'left';
+                    th.textContent = headerText;
+                    scheduleHeaderRow.appendChild(th);
+                });
+                
+                scheduleTable.appendChild(scheduleHeaderRow);
+                
+                // Добавляем строки расписания
+                if (admin.schedule && Array.isArray(admin.schedule)) {
+                    for (let i = 0; i < admin.schedule.length; i++) {
+                        const shift = admin.schedule[i];
+                        
+                        // Пропускаем выходные и больничные
+                        if (!shift || shift === "X" || shift === "XR" || shift === "HOL" || shift === "TR" || shift === "sick") {
+                            continue;
+                        }
+                        
+                        // Рассчитываем часы для смены
+                        const hours = calculateHoursFromShift(shift);
+                        
+                        // Определяем локацию для смены
+                        let shiftLocation = null;
+                        
+                        // Получаем цвет ячейки для определения локации
+                        const cellColor = getCellColorForDay(admin.name, i, headerInfo);
+                        
+                        if (cellColor) {
+                            // Определяем локацию по цвету ячейки
+                            if (isSimilarColor(cellColor, locationColors.East)) {
+                                shiftLocation = "East";
+                            } else if (isSimilarColor(cellColor, locationColors.RLH)) {
+                                shiftLocation = "RLH";
+                            } else if (isSimilarColor(cellColor, locationColors.Bankside)) {
+                                shiftLocation = "Bankside";
+                            }
+                        }
+                        
+                        // Если не удалось определить локацию по цвету, проверяем гостевые смены
+                        if (!shiftLocation && admin.shifts && Array.isArray(admin.shifts)) {
+                            for (const guestShift of admin.shifts) {
+                                if (guestShift.day === i) {
+                                    shiftLocation = guestShift.location;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // Если все еще не удалось определить локацию, используем домашнюю
+                        if (!shiftLocation) {
+                            shiftLocation = admin.homeLocation;
+                        }
+                        
+                        // Создаем строку расписания
+                        const scheduleRow = document.createElement('tr');
+                        scheduleRow.style.border = '1px solid #ddd';
+                        
+                        // День
+                        const dayCell = document.createElement('td');
+                        dayCell.style.border = '1px solid #ddd';
+                        dayCell.style.padding = '4px';
+                        dayCell.textContent = i + 1;
+                        scheduleRow.appendChild(dayCell);
+                        
+                        // Смена
+                        const shiftCell = document.createElement('td');
+                        shiftCell.style.border = '1px solid #ddd';
+                        shiftCell.style.padding = '4px';
+                        shiftCell.textContent = shift;
+                        scheduleRow.appendChild(shiftCell);
+                        
+                        // Часы
+                        const hoursCell = document.createElement('td');
+                        hoursCell.style.border = '1px solid #ddd';
+                        hoursCell.style.padding = '4px';
+                        hoursCell.style.textAlign = 'right';
+                        hoursCell.textContent = hours.toFixed(1);
+                        scheduleRow.appendChild(hoursCell);
+                        
+                        // Локация
+                        const locationShiftCell = document.createElement('td');
+                        locationShiftCell.style.border = '1px solid #ddd';
+                        locationShiftCell.style.padding = '4px';
+                        locationShiftCell.textContent = shiftLocation || 'Unknown';
+                        
+                        // Выделяем цветом в зависимости от локации
+                        if (shiftLocation === "East") {
+                            locationShiftCell.style.backgroundColor = '#e8f5e9';
+                        } else if (shiftLocation === "RLH") {
+                            locationShiftCell.style.backgroundColor = '#e3f2fd';
+                        } else if (shiftLocation === "Bankside") {
+                            locationShiftCell.style.backgroundColor = '#f5f5f5';
+                        }
+                        
+                        scheduleRow.appendChild(locationShiftCell);
+                        
+                        scheduleTable.appendChild(scheduleRow);
+                    }
+                }
+                
+                scheduleCell.appendChild(scheduleTable);
+                row.appendChild(scheduleCell);
+                
+                tbody.appendChild(row);
+            }
+            
+            // Добавляем строку с общими суммами
+            const totalRow = document.createElement('tr');
+            totalRow.style.border = '1px solid #ddd';
+            totalRow.style.backgroundColor = '#f9f9f9';
+            totalRow.style.fontWeight = 'bold';
+            
+            // Ячейка "TOTAL"
+            const totalLabelCell = document.createElement('td');
+            totalLabelCell.style.border = '1px solid #ddd';
+            totalLabelCell.style.padding = '8px';
+            totalLabelCell.textContent = "TOTAL";
+            totalRow.appendChild(totalLabelCell);
+            
+            // Пустая ячейка для домашней локации
+            const emptyLocationCell = document.createElement('td');
+            emptyLocationCell.style.border = '1px solid #ddd';
+            emptyLocationCell.style.padding = '8px';
+            totalRow.appendChild(emptyLocationCell);
+            
+            // Общая сумма часов
+            const totalHoursSumCell = document.createElement('td');
+            totalHoursSumCell.style.border = '1px solid #ddd';
+            totalHoursSumCell.style.padding = '8px';
+            totalHoursSumCell.style.textAlign = 'right';
+            totalHoursSumCell.textContent = totalHoursSum.toFixed(1);
+            totalRow.appendChild(totalHoursSumCell);
+            
+            // Общая сумма часов East
+            const eastHoursSumCell = document.createElement('td');
+            eastHoursSumCell.style.border = '1px solid #ddd';
+            eastHoursSumCell.style.padding = '8px';
+            eastHoursSumCell.style.textAlign = 'right';
+            eastHoursSumCell.textContent = eastHoursSum.toFixed(1);
+            eastHoursSumCell.style.backgroundColor = '#e8f5e9';
+            totalRow.appendChild(eastHoursSumCell);
+            
+            // Общая сумма часов RLH
+            const rlhHoursSumCell = document.createElement('td');
+            rlhHoursSumCell.style.border = '1px solid #ddd';
+            rlhHoursSumCell.style.padding = '8px';
+            rlhHoursSumCell.style.textAlign = 'right';
+            rlhHoursSumCell.textContent = rlhHoursSum.toFixed(1);
+            rlhHoursSumCell.style.backgroundColor = '#e3f2fd';
+            totalRow.appendChild(rlhHoursSumCell);
+            
+            // Общая сумма часов Bankside
+            const banksideHoursSumCell = document.createElement('td');
+            banksideHoursSumCell.style.border = '1px solid #ddd';
+            banksideHoursSumCell.style.padding = '8px';
+            banksideHoursSumCell.style.textAlign = 'right';
+            banksideHoursSumCell.textContent = banksideHoursSum.toFixed(1);
+            banksideHoursSumCell.style.backgroundColor = '#f5f5f5';
+            totalRow.appendChild(banksideHoursSumCell);
+            
+            // Пустая ячейка для расписания
+            const emptyScheduleCell = document.createElement('td');
+            emptyScheduleCell.style.border = '1px solid #ddd';
+            emptyScheduleCell.style.padding = '8px';
+            totalRow.appendChild(emptyScheduleCell);
+            
+            // Добавляем строку с суммами в тело таблицы
+            tbody.appendChild(totalRow);
+            
+            table.appendChild(tbody);
+            adminsInfo.appendChild(table);
+            
+            modalContent.appendChild(adminsInfo);
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+        }
+        
+        // Функция для показа информации о специалистах по приему в модальном окне
+        function showAttendanceInfo(staffList, headerInfo) {
+            // Отфильтровываем только специалистов по приему с хотя бы одной сменой
+            const attendanceStaff = staffList.filter(staff => 
+                staff.position === "Spa Attendance" &&
+                staff.totalHours > 0 // Проверяем, что у сотрудника есть хотя бы одна смена
+            );
+            
+            // Сортируем специалистов по приему по имени
+            attendanceStaff.sort((a, b) => a.name.localeCompare(b.name));
+            
+            // Создаем модальное окно
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.left = '0';
+            modal.style.top = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.7)';
+            modal.style.zIndex = '1000';
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+            
+            // Создаем контент модального окна
+            const modalContent = document.createElement('div');
+            modalContent.style.backgroundColor = '#fff';
+            modalContent.style.padding = '20px';
+            modalContent.style.borderRadius = '5px';
+            modalContent.style.maxWidth = '90%';
+            modalContent.style.maxHeight = '90%';
+            modalContent.style.overflowY = 'auto';
+            
+            // Создаем кнопку закрытия
+            const closeButton = document.createElement('button');
+            closeButton.style.position = 'sticky';
+            closeButton.style.top = '0';
+            closeButton.style.right = '0';
+            closeButton.style.padding = '8px 15px';
+            closeButton.style.backgroundColor = '#f44336';
+            closeButton.style.color = 'white';
+            closeButton.style.border = 'none';
+            closeButton.style.cursor = 'pointer';
+            closeButton.style.borderRadius = '4px';
+            closeButton.style.float = 'right';
+            closeButton.textContent = 'Close';
+            closeButton.addEventListener('click', function() {
+                document.body.removeChild(modal);
+            });
+            
+            modalContent.appendChild(closeButton);
+            
+            // Создаем таблицу с информацией о специалистах по приему
+            const attendanceInfo = document.createElement('div');
+            attendanceInfo.innerHTML = "<h3>Detailed Attendance Staff Information</h3>";
+            
+            const table = document.createElement('table');
+            table.style.width = '100%';
+            table.style.borderCollapse = 'collapse';
+            table.style.marginTop = '20px';
+            
+            // Создаем заголовок таблицы
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            headerRow.style.backgroundColor = '#f2f2f2';
+            
+            const headers = ['Name', 'Home Location', 'Total Hours', 'East Hours', 'RLH Hours', 'Bankside Hours', 'Schedule'];
+            
+            headers.forEach(headerText => {
+                const th = document.createElement('th');
+                th.style.border = '1px solid #ddd';
+                th.style.padding = '8px';
+                th.style.textAlign = headerText.includes('Hours') ? 'right' : 'left';
+                th.textContent = headerText;
+                headerRow.appendChild(th);
+            });
+            
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // Создаем тело таблицы
+            const tbody = document.createElement('tbody');
+            
+            // Создаем переменные для подсчета общей суммы часов
+            let totalHoursSum = 0;
+            let eastHoursSum = 0;
+            let rlhHoursSum = 0;
+            let banksideHoursSum = 0;
+            
+            for (const attendanceStaffMember of attendanceStaff) {
+                const row = document.createElement('tr');
+                row.style.border = '1px solid #ddd';
+                
+                // Имя
+                const nameCell = document.createElement('td');
+                nameCell.style.border = '1px solid #ddd';
+                nameCell.style.padding = '8px';
+                nameCell.textContent = attendanceStaffMember.name;
+                row.appendChild(nameCell);
+                
+                // Домашняя локация
+                const locationCell = document.createElement('td');
+                locationCell.style.border = '1px solid #ddd';
+                locationCell.style.padding = '8px';
+                locationCell.textContent = attendanceStaffMember.homeLocation || 'Unknown';
+                row.appendChild(locationCell);
+                
+                // Всего часов
+                const totalHoursCell = document.createElement('td');
+                totalHoursCell.style.border = '1px solid #ddd';
+                totalHoursCell.style.padding = '8px';
+                totalHoursCell.style.textAlign = 'right';
+                totalHoursCell.textContent = attendanceStaffMember.totalHours.toFixed(1);
+                row.appendChild(totalHoursCell);
+                
+                // Добавляем к общей сумме
+                totalHoursSum += attendanceStaffMember.totalHours;
+                
+                // East часы
+                const eastHoursCell = document.createElement('td');
+                eastHoursCell.style.border = '1px solid #ddd';
+                eastHoursCell.style.padding = '8px';
+                eastHoursCell.style.textAlign = 'right';
+                eastHoursCell.textContent = attendanceStaffMember.eastHours.toFixed(1);
+                if (attendanceStaffMember.eastHours > 0) {
+                    eastHoursCell.style.backgroundColor = '#e8f5e9';
+                }
+                row.appendChild(eastHoursCell);
+                
+                // Добавляем к сумме East
+                eastHoursSum += attendanceStaffMember.eastHours;
+                
+                // RLH часы
+                const rlhHoursCell = document.createElement('td');
+                rlhHoursCell.style.border = '1px solid #ddd';
+                rlhHoursCell.style.padding = '8px';
+                rlhHoursCell.style.textAlign = 'right';
+                rlhHoursCell.textContent = attendanceStaffMember.rlhHours.toFixed(1);
+                if (attendanceStaffMember.rlhHours > 0) {
+                    rlhHoursCell.style.backgroundColor = '#e3f2fd';
+                }
+                row.appendChild(rlhHoursCell);
+                
+                // Добавляем к сумме RLH
+                rlhHoursSum += attendanceStaffMember.rlhHours;
+                
+                // Bankside часы
+                const banksideHoursCell = document.createElement('td');
+                banksideHoursCell.style.border = '1px solid #ddd';
+                banksideHoursCell.style.padding = '8px';
+                banksideHoursCell.style.textAlign = 'right';
+                banksideHoursCell.textContent = attendanceStaffMember.banksideHours.toFixed(1);
+                if (attendanceStaffMember.banksideHours > 0) {
+                    banksideHoursCell.style.backgroundColor = '#f5f5f5';
+                }
+                row.appendChild(banksideHoursCell);
+                
+                // Добавляем к сумме Bankside
+                banksideHoursSum += attendanceStaffMember.banksideHours;
+                
+                // Расписание
+                const scheduleCell = document.createElement('td');
+                scheduleCell.style.border = '1px solid #ddd';
+                scheduleCell.style.padding = '8px';
+                
+                // Создаем таблицу расписания
+                const scheduleTable = document.createElement('table');
+                scheduleTable.style.width = '100%';
+                scheduleTable.style.borderCollapse = 'collapse';
+                
+                // Заголовок таблицы расписания
+                const scheduleHeaderRow = document.createElement('tr');
+                scheduleHeaderRow.style.backgroundColor = '#f9f9f9';
+                
+                const scheduleHeaders = ['Day', 'Shift', 'Hours', 'Location'];
+                
+                scheduleHeaders.forEach(headerText => {
+                    const th = document.createElement('th');
+                    th.style.border = '1px solid #ddd';
+                    th.style.padding = '4px';
+                    th.style.textAlign = headerText === 'Hours' ? 'right' : 'left';
+                    th.textContent = headerText;
+                    scheduleHeaderRow.appendChild(th);
+                });
+                
+                scheduleTable.appendChild(scheduleHeaderRow);
+                
+                // Добавляем строки расписания
+                if (attendanceStaffMember.schedule && Array.isArray(attendanceStaffMember.schedule)) {
+                    for (let i = 0; i < attendanceStaffMember.schedule.length; i++) {
+                        const shift = attendanceStaffMember.schedule[i];
+                        
+                        // Пропускаем выходные и больничные
+                        if (!shift || shift === "X" || shift === "XR" || shift === "HOL" || shift === "TR" || shift === "sick") {
+                            continue;
+                        }
+                        
+                        // Рассчитываем часы для смены
+                        const hours = calculateHoursFromShift(shift);
+                        
+                        // Определяем локацию для смены
+                        let shiftLocation = null;
+                        
+                        // Получаем цвет ячейки для определения локации
+                        const cellColor = getCellColorForDay(attendanceStaffMember.name, i, headerInfo);
+                        
+                        if (cellColor) {
+                            // Определяем локацию по цвету ячейки
+                            if (isSimilarColor(cellColor, locationColors.East)) {
+                                shiftLocation = "East";
+                            } else if (isSimilarColor(cellColor, locationColors.RLH)) {
+                                shiftLocation = "RLH";
+                            } else if (isSimilarColor(cellColor, locationColors.Bankside)) {
+                                shiftLocation = "Bankside";
+                            }
+                        }
+                        
+                        // Если не удалось определить локацию по цвету, проверяем гостевые смены
+                        if (!shiftLocation && attendanceStaffMember.shifts && Array.isArray(attendanceStaffMember.shifts)) {
+                            for (const guestShift of attendanceStaffMember.shifts) {
+                                if (guestShift.day === i) {
+                                    shiftLocation = guestShift.location;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // Если все еще не удалось определить локацию, используем домашнюю
+                        if (!shiftLocation) {
+                            shiftLocation = attendanceStaffMember.homeLocation;
+                        }
+                        
+                        // Создаем строку расписания
+                        const scheduleRow = document.createElement('tr');
+                        scheduleRow.style.border = '1px solid #ddd';
+                        
+                        // День
+                        const dayCell = document.createElement('td');
+                        dayCell.style.border = '1px solid #ddd';
+                        dayCell.style.padding = '4px';
+                        dayCell.textContent = i + 1;
+                        scheduleRow.appendChild(dayCell);
+                        
+                        // Смена
+                        const shiftCell = document.createElement('td');
+                        shiftCell.style.border = '1px solid #ddd';
+                        shiftCell.style.padding = '4px';
+                        shiftCell.textContent = shift;
+                        scheduleRow.appendChild(shiftCell);
+                        
+                        // Часы
+                        const hoursCell = document.createElement('td');
+                        hoursCell.style.border = '1px solid #ddd';
+                        hoursCell.style.padding = '4px';
+                        hoursCell.style.textAlign = 'right';
+                        hoursCell.textContent = hours.toFixed(1);
+                        scheduleRow.appendChild(hoursCell);
+                        
+                        // Локация
+                        const locationShiftCell = document.createElement('td');
+                        locationShiftCell.style.border = '1px solid #ddd';
+                        locationShiftCell.style.padding = '4px';
+                        locationShiftCell.textContent = shiftLocation || 'Unknown';
+                        
+                        // Выделяем цветом в зависимости от локации
+                        if (shiftLocation === "East") {
+                            locationShiftCell.style.backgroundColor = '#e8f5e9';
+                        } else if (shiftLocation === "RLH") {
+                            locationShiftCell.style.backgroundColor = '#e3f2fd';
+                        } else if (shiftLocation === "Bankside") {
+                            locationShiftCell.style.backgroundColor = '#f5f5f5';
+                        }
+                        
+                        scheduleRow.appendChild(locationShiftCell);
+                        
+                        scheduleTable.appendChild(scheduleRow);
+                    }
+                }
+                
+                scheduleCell.appendChild(scheduleTable);
+                row.appendChild(scheduleCell);
+                
+                tbody.appendChild(row);
+            }
+            
+            // Добавляем строку с общими суммами
+            const totalRow = document.createElement('tr');
+            totalRow.style.border = '1px solid #ddd';
+            totalRow.style.backgroundColor = '#f9f9f9';
+            totalRow.style.fontWeight = 'bold';
+            
+            // Ячейка "TOTAL"
+            const totalLabelCell = document.createElement('td');
+            totalLabelCell.style.border = '1px solid #ddd';
+            totalLabelCell.style.padding = '8px';
+            totalLabelCell.textContent = "TOTAL";
+            totalRow.appendChild(totalLabelCell);
+            
+            // Пустая ячейка для домашней локации
+            const emptyLocationCell = document.createElement('td');
+            emptyLocationCell.style.border = '1px solid #ddd';
+            emptyLocationCell.style.padding = '8px';
+            totalRow.appendChild(emptyLocationCell);
+            
+            // Общая сумма часов
+            const totalHoursSumCell = document.createElement('td');
+            totalHoursSumCell.style.border = '1px solid #ddd';
+            totalHoursSumCell.style.padding = '8px';
+            totalHoursSumCell.style.textAlign = 'right';
+            totalHoursSumCell.textContent = totalHoursSum.toFixed(1);
+            totalRow.appendChild(totalHoursSumCell);
+            
+            // Общая сумма часов East
+            const eastHoursSumCell = document.createElement('td');
+            eastHoursSumCell.style.border = '1px solid #ddd';
+            eastHoursSumCell.style.padding = '8px';
+            eastHoursSumCell.style.textAlign = 'right';
+            eastHoursSumCell.textContent = eastHoursSum.toFixed(1);
+            eastHoursSumCell.style.backgroundColor = '#e8f5e9';
+            totalRow.appendChild(eastHoursSumCell);
+            
+            // Общая сумма часов RLH
+            const rlhHoursSumCell = document.createElement('td');
+            rlhHoursSumCell.style.border = '1px solid #ddd';
+            rlhHoursSumCell.style.padding = '8px';
+            rlhHoursSumCell.style.textAlign = 'right';
+            rlhHoursSumCell.textContent = rlhHoursSum.toFixed(1);
+            rlhHoursSumCell.style.backgroundColor = '#e3f2fd';
+            totalRow.appendChild(rlhHoursSumCell);
+            
+            // Общая сумма часов Bankside
+            const banksideHoursSumCell = document.createElement('td');
+            banksideHoursSumCell.style.border = '1px solid #ddd';
+            banksideHoursSumCell.style.padding = '8px';
+            banksideHoursSumCell.style.textAlign = 'right';
+            banksideHoursSumCell.textContent = banksideHoursSum.toFixed(1);
+            banksideHoursSumCell.style.backgroundColor = '#f5f5f5';
+            totalRow.appendChild(banksideHoursSumCell);
+            
+            // Пустая ячейка для расписания
+            const emptyScheduleCell = document.createElement('td');
+            emptyScheduleCell.style.border = '1px solid #ddd';
+            emptyScheduleCell.style.padding = '8px';
+            totalRow.appendChild(emptyScheduleCell);
+            
+            // Добавляем строку с суммами в тело таблицы
+            tbody.appendChild(totalRow);
+            
+            table.appendChild(tbody);
+            attendanceInfo.appendChild(table);
+            
+            modalContent.appendChild(attendanceInfo);
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+        }
+        
+        // Функция для показа информации о терапевтах в модальном окне
+        function showTherapistsInfo(staffList, headerInfo) {
+            // Отфильтровываем только терапевтов с хотя бы одной сменой
+            const therapists = staffList.filter(staff => 
+                staff.position === "Therapist" &&
+                staff.totalHours > 0 // Проверяем, что у терапевта есть хотя бы одна смена
+            );
+            
+            // Сортируем терапевтов по имени
+            therapists.sort((a, b) => a.name.localeCompare(b.name));
+            
+            // Создаем модальное окно
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.left = '0';
+            modal.style.top = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.7)';
+            modal.style.zIndex = '1000';
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+            
+            // Создаем контент модального окна
+            const modalContent = document.createElement('div');
+            modalContent.style.backgroundColor = '#fff';
+            modalContent.style.padding = '20px';
+            modalContent.style.borderRadius = '5px';
+            modalContent.style.maxWidth = '90%';
+            modalContent.style.maxHeight = '90%';
+            modalContent.style.overflowY = 'auto';
+            
+            // Создаем кнопку закрытия
+            const closeButton = document.createElement('button');
+            closeButton.style.position = 'sticky';
+            closeButton.style.top = '0';
+            closeButton.style.right = '0';
+            closeButton.style.padding = '8px 15px';
+            closeButton.style.backgroundColor = '#f44336';
+            closeButton.style.color = 'white';
+            closeButton.style.border = 'none';
+            closeButton.style.cursor = 'pointer';
+            closeButton.style.borderRadius = '4px';
+            closeButton.style.float = 'right';
+            closeButton.textContent = 'Close';
+            closeButton.addEventListener('click', function() {
+                document.body.removeChild(modal);
+            });
+            
+            modalContent.appendChild(closeButton);
+            
+            // Создаем таблицу с информацией о терапевтах
+            const therapistsInfo = document.createElement('div');
+            therapistsInfo.innerHTML = "<h3>Detailed Therapists Information</h3>";
+            
+            const table = document.createElement('table');
+            table.style.width = '100%';
+            table.style.borderCollapse = 'collapse';
+            table.style.marginTop = '20px';
+            
+            // Создаем заголовок таблицы
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            headerRow.style.backgroundColor = '#f2f2f2';
+            
+            const headers = ['Name', 'Home Location', 'Total Hours', 'East Hours', 'RLH Hours', 'Bankside Hours', 'Schedule'];
+            
+            headers.forEach(headerText => {
+                const th = document.createElement('th');
+                th.style.border = '1px solid #ddd';
+                th.style.padding = '8px';
+                th.style.textAlign = headerText.includes('hours') ? 'right' : 'left';
+                th.textContent = headerText;
+                headerRow.appendChild(th);
+            });
+            
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // Создаем тело таблицы
+            const tbody = document.createElement('tbody');
+            
+            // Создаем переменные для подсчета общей суммы часов
+            let totalHoursSum = 0;
+            let eastHoursSum = 0;
+            let rlhHoursSum = 0;
+            let banksideHoursSum = 0;
+            
+            for (const therapist of therapists) {
+                const row = document.createElement('tr');
+                row.style.border = '1px solid #ddd';
+                
+                // Имя
+                const nameCell = document.createElement('td');
+                nameCell.style.border = '1px solid #ddd';
+                nameCell.style.padding = '8px';
+                nameCell.textContent = therapist.name;
+                row.appendChild(nameCell);
+                
+                // Домашняя локация
+                const locationCell = document.createElement('td');
+                locationCell.style.border = '1px solid #ddd';
+                locationCell.style.padding = '8px';
+                locationCell.textContent = therapist.homeLocation || 'Unknown';
+                row.appendChild(locationCell);
+                
+                // Всего часов
+                const totalHoursCell = document.createElement('td');
+                totalHoursCell.style.border = '1px solid #ddd';
+                totalHoursCell.style.padding = '8px';
+                totalHoursCell.style.textAlign = 'right';
+                totalHoursCell.textContent = therapist.totalHours.toFixed(1);
+                row.appendChild(totalHoursCell);
+                
+                // Добавляем к общей сумме
+                totalHoursSum += therapist.totalHours;
+                
+                // East часы
+                const eastHoursCell = document.createElement('td');
+                eastHoursCell.style.border = '1px solid #ddd';
+                eastHoursCell.style.padding = '8px';
+                eastHoursCell.style.textAlign = 'right';
+                eastHoursCell.textContent = therapist.eastHours.toFixed(1);
+                if (therapist.eastHours > 0) {
+                    eastHoursCell.style.backgroundColor = '#e8f5e9';
+                }
+                row.appendChild(eastHoursCell);
+                
+                // Добавляем к сумме East
+                eastHoursSum += therapist.eastHours;
+                
+                // RLH часы
+                const rlhHoursCell = document.createElement('td');
+                rlhHoursCell.style.border = '1px solid #ddd';
+                rlhHoursCell.style.padding = '8px';
+                rlhHoursCell.style.textAlign = 'right';
+                rlhHoursCell.textContent = therapist.rlhHours.toFixed(1);
+                if (therapist.rlhHours > 0) {
+                    rlhHoursCell.style.backgroundColor = '#e3f2fd';
+                }
+                row.appendChild(rlhHoursCell);
+                
+                // Добавляем к сумме RLH
+                rlhHoursSum += therapist.rlhHours;
+                
+                // Bankside часы
+                const banksideHoursCell = document.createElement('td');
+                banksideHoursCell.style.border = '1px solid #ddd';
+                banksideHoursCell.style.padding = '8px';
+                banksideHoursCell.style.textAlign = 'right';
+                banksideHoursCell.textContent = therapist.banksideHours.toFixed(1);
+                if (therapist.banksideHours > 0) {
+                    banksideHoursCell.style.backgroundColor = '#f5f5f5';
+                }
+                row.appendChild(banksideHoursCell);
+                
+                // Добавляем к сумме Bankside
+                banksideHoursSum += therapist.banksideHours;
+                
+                // Расписание
+                const scheduleCell = document.createElement('td');
+                scheduleCell.style.border = '1px solid #ddd';
+                scheduleCell.style.padding = '8px';
+                
+                // Создаем таблицу расписания
+                const scheduleTable = document.createElement('table');
+                scheduleTable.style.width = '100%';
+                scheduleTable.style.borderCollapse = 'collapse';
+                
+                // Заголовок таблицы расписания
+                const scheduleHeaderRow = document.createElement('tr');
+                scheduleHeaderRow.style.backgroundColor = '#f9f9f9';
+                
+                const scheduleHeaders = ['Day', 'Shift', 'Hours', 'Location'];
+                
+                scheduleHeaders.forEach(headerText => {
+                    const th = document.createElement('th');
+                    th.style.border = '1px solid #ddd';
+                    th.style.padding = '4px';
+                    th.style.textAlign = headerText === 'Hours' ? 'right' : 'left';
+                    th.textContent = headerText;
+                    scheduleHeaderRow.appendChild(th);
+                });
+                
+                scheduleTable.appendChild(scheduleHeaderRow);
+                
+                // Добавляем строки расписания
+                if (therapist.schedule && Array.isArray(therapist.schedule)) {
+                    for (let i = 0; i < therapist.schedule.length; i++) {
+                        const shift = therapist.schedule[i];
+                        
+                        // Пропускаем выходные и больничные
+                        if (!shift || shift === "X" || shift === "XR" || shift === "HOL" || shift === "TR" || shift === "sick") {
+                            continue;
+                        }
+                        
+                        // Рассчитываем часы для смены
+                        const hours = calculateHoursFromShift(shift);
+                        
+                        // Определяем локацию для смены
+                        let shiftLocation = null;
+                        
+                        // Получаем цвет ячейки для определения локации
+                        const cellColor = getCellColorForDay(therapist.name, i, headerInfo);
+                        
+                        if (cellColor) {
+                            // Определяем локацию по цвету ячейки
+                            if (isSimilarColor(cellColor, locationColors.East)) {
+                                shiftLocation = "East";
+                            } else if (isSimilarColor(cellColor, locationColors.RLH)) {
+                                shiftLocation = "RLH";
+                            } else if (isSimilarColor(cellColor, locationColors.Bankside)) {
+                                shiftLocation = "Bankside";
+                            }
+                        }
+                        
+                        // Если не удалось определить локацию по цвету, проверяем гостевые смены
+                        if (!shiftLocation && therapist.shifts && Array.isArray(therapist.shifts)) {
+                            for (const guestShift of therapist.shifts) {
+                                if (guestShift.day === i) {
+                                    shiftLocation = guestShift.location;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // Если все еще не удалось определить локацию, используем домашнюю
+                        if (!shiftLocation) {
+                            shiftLocation = therapist.homeLocation;
+                        }
+                        
+                        // Создаем строку расписания
+                        const scheduleRow = document.createElement('tr');
+                        scheduleRow.style.border = '1px solid #ddd';
+                        
+                        // День
+                        const dayCell = document.createElement('td');
+                        dayCell.style.border = '1px solid #ddd';
+                        dayCell.style.padding = '4px';
+                        dayCell.textContent = i + 1;
+                        scheduleRow.appendChild(dayCell);
+                        
+                        // Смена
+                        const shiftCell = document.createElement('td');
+                        shiftCell.style.border = '1px solid #ddd';
+                        shiftCell.style.padding = '4px';
+                        shiftCell.textContent = shift;
+                        scheduleRow.appendChild(shiftCell);
+                        
+                        // Часы
+                        const hoursCell = document.createElement('td');
+                        hoursCell.style.border = '1px solid #ddd';
+                        hoursCell.style.padding = '4px';
+                        hoursCell.style.textAlign = 'right';
+                        hoursCell.textContent = hours.toFixed(1);
+                        scheduleRow.appendChild(hoursCell);
+                        
+                        // Локация
+                        const locationShiftCell = document.createElement('td');
+                        locationShiftCell.style.border = '1px solid #ddd';
+                        locationShiftCell.style.padding = '4px';
+                        locationShiftCell.textContent = shiftLocation || 'Unknown';
+                        
+                        // Выделяем цветом в зависимости от локации
+                        if (shiftLocation === "East") {
+                            locationShiftCell.style.backgroundColor = '#e8f5e9';
+                        } else if (shiftLocation === "RLH") {
+                            locationShiftCell.style.backgroundColor = '#e3f2fd';
+                        } else if (shiftLocation === "Bankside") {
+                            locationShiftCell.style.backgroundColor = '#f5f5f5';
+                        }
+                        
+                        scheduleRow.appendChild(locationShiftCell);
+                        
+                        scheduleTable.appendChild(scheduleRow);
+                    }
+                }
+                
+                scheduleCell.appendChild(scheduleTable);
+                row.appendChild(scheduleCell);
+                
+                tbody.appendChild(row);
+            }
+            
+            // Добавляем строку с общими суммами
+            const totalRow = document.createElement('tr');
+            totalRow.style.border = '1px solid #ddd';
+            totalRow.style.backgroundColor = '#f9f9f9';
+            totalRow.style.fontWeight = 'bold';
+            
+            // Ячейка "TOTAL"
+            const totalLabelCell = document.createElement('td');
+            totalLabelCell.style.border = '1px solid #ddd';
+            totalLabelCell.style.padding = '8px';
+            totalLabelCell.textContent = "TOTAL";
+            totalRow.appendChild(totalLabelCell);
+            
+            // Пустая ячейка для домашней локации
+            const emptyLocationCell = document.createElement('td');
+            emptyLocationCell.style.border = '1px solid #ddd';
+            emptyLocationCell.style.padding = '8px';
+            totalRow.appendChild(emptyLocationCell);
+            
+            // Общая сумма часов
+            const totalHoursSumCell = document.createElement('td');
+            totalHoursSumCell.style.border = '1px solid #ddd';
+            totalHoursSumCell.style.padding = '8px';
+            totalHoursSumCell.style.textAlign = 'right';
+            totalHoursSumCell.textContent = totalHoursSum.toFixed(1);
+            totalRow.appendChild(totalHoursSumCell);
+            
+            // Общая сумма часов East
+            const eastHoursSumCell = document.createElement('td');
+            eastHoursSumCell.style.border = '1px solid #ddd';
+            eastHoursSumCell.style.padding = '8px';
+            eastHoursSumCell.style.textAlign = 'right';
+            eastHoursSumCell.textContent = eastHoursSum.toFixed(1);
+            eastHoursSumCell.style.backgroundColor = '#e8f5e9';
+            totalRow.appendChild(eastHoursSumCell);
+            
+            // Общая сумма часов RLH
+            const rlhHoursSumCell = document.createElement('td');
+            rlhHoursSumCell.style.border = '1px solid #ddd';
+            rlhHoursSumCell.style.padding = '8px';
+            rlhHoursSumCell.style.textAlign = 'right';
+            rlhHoursSumCell.textContent = rlhHoursSum.toFixed(1);
+            rlhHoursSumCell.style.backgroundColor = '#e3f2fd';
+            totalRow.appendChild(rlhHoursSumCell);
+            
+            // Общая сумма часов Bankside
+            const banksideHoursSumCell = document.createElement('td');
+            banksideHoursSumCell.style.border = '1px solid #ddd';
+            banksideHoursSumCell.style.padding = '8px';
+            banksideHoursSumCell.style.textAlign = 'right';
+            banksideHoursSumCell.textContent = banksideHoursSum.toFixed(1);
+            banksideHoursSumCell.style.backgroundColor = '#f5f5f5';
+            totalRow.appendChild(banksideHoursSumCell);
+            
+            // Пустая ячейка для расписания
+            const emptyScheduleCell = document.createElement('td');
+            emptyScheduleCell.style.border = '1px solid #ddd';
+            emptyScheduleCell.style.padding = '8px';
+            totalRow.appendChild(emptyScheduleCell);
+            
+            // Добавляем строку с суммами в тело таблицы
+            tbody.appendChild(totalRow);
+            
+            table.appendChild(tbody);
+            therapistsInfo.appendChild(table);
+            
+            modalContent.appendChild(therapistsInfo);
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+        }
+        
+        // Функция для показа нераспознанных смен в модальном окне
+        function showUnrecognizedShifts() {
+            // Проверяем, есть ли нераспознанные смены
+            if (!window.unrecognizedShifts || window.unrecognizedShifts.length === 0) {
+                alert('No unrecognized shifts found!');
+                return;
+            }
+            
+            // Создаем модальное окно
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.left = '0';
+            modal.style.top = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.7)';
+            modal.style.zIndex = '1000';
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+            
+            // Создаем контент модального окна
+            const modalContent = document.createElement('div');
+            modalContent.style.backgroundColor = '#fff';
+            modalContent.style.padding = '20px';
+            modalContent.style.borderRadius = '5px';
+            modalContent.style.maxWidth = '90%';
+            modalContent.style.maxHeight = '90%';
+            modalContent.style.overflowY = 'auto';
+            
+            // Создаем кнопку закрытия
+            const closeButton = document.createElement('button');
+            closeButton.style.position = 'sticky';
+            closeButton.style.top = '0';
+            closeButton.style.right = '0';
+            closeButton.style.padding = '8px 15px';
+            closeButton.style.backgroundColor = '#f44336';
+            closeButton.style.color = 'white';
+            closeButton.style.border = 'none';
+            closeButton.style.cursor = 'pointer';
+            closeButton.style.borderRadius = '4px';
+            closeButton.style.float = 'right';
+            closeButton.textContent = 'Close';
+            closeButton.addEventListener('click', function() {
+                document.body.removeChild(modal);
+            });
+            
+            modalContent.appendChild(closeButton);
+            
+            // Создаем заголовок
+            const header = document.createElement('h3');
+            header.textContent = `Unrecognized Shift Formats (${window.unrecognizedShifts.length})`;
+            modalContent.appendChild(header);
+            
+            // Создаем описание
+            const description = document.createElement('p');
+            description.textContent = 'These shifts were not recognized and have been assigned 0 hours. Please check the format and update the schedule.';
+            description.style.marginBottom = '20px';
+            modalContent.appendChild(description);
+            
+            // Создаем таблицу
+            const table = document.createElement('table');
+            table.style.width = '100%';
+            table.style.borderCollapse = 'collapse';
+            
+            // Заголовок таблицы
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            headerRow.style.backgroundColor = '#f2f2f2';
+            
+            const headers = ['Staff', 'Shift'];
+            
+            headers.forEach(headerText => {
+                const th = document.createElement('th');
+                th.style.border = '1px solid #ddd';
+                th.style.padding = '8px';
+                th.style.textAlign = 'left';
+                th.textContent = headerText;
+                headerRow.appendChild(th);
+            });
+            
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // Тело таблицы
+            const tbody = document.createElement('tbody');
+            
+            // Группируем нераспознанные смены по сотрудникам для наглядности
+            const staffShifts = {};
+            
+            window.unrecognizedShifts.forEach(item => {
+                if (!staffShifts[item.staffName]) {
+                    staffShifts[item.staffName] = [];
+                }
+                staffShifts[item.staffName].push(item.shift);
+            });
+            
+            // Добавляем строки в таблицу
+            for (const staffName in staffShifts) {
+                const shifts = staffShifts[staffName];
+                
+                shifts.forEach((shift, index) => {
+                    const row = document.createElement('tr');
+                    
+                    // Имя сотрудника (только в первой строке для данного сотрудника)
+                    const nameCell = document.createElement('td');
+                    nameCell.style.border = '1px solid #ddd';
+                    nameCell.style.padding = '8px';
+                    
+                    if (index === 0) {
+                        nameCell.textContent = staffName;
+                        nameCell.rowSpan = shifts.length;
+                    } else {
+                        nameCell.style.display = 'none'; // Скрываем для последующих строк
+                    }
+                    
+                    row.appendChild(nameCell);
+                    
+                    // Смена
+                    const shiftCell = document.createElement('td');
+                    shiftCell.style.border = '1px solid #ddd';
+                    shiftCell.style.padding = '8px';
+                    shiftCell.textContent = shift;
+                    row.appendChild(shiftCell);
+                    
+                    tbody.appendChild(row);
+                });
+            }
+            
+            table.appendChild(tbody);
+            modalContent.appendChild(table);
+            
+            // Добавляем кнопку для экспорта нераспознанных смен
+            const exportButton = document.createElement('button');
+            exportButton.style.marginTop = '20px';
+            exportButton.style.padding = '8px 15px';
+            exportButton.style.backgroundColor = '#4CAF50';
+            exportButton.style.color = 'white';
+            exportButton.style.border = 'none';
+            exportButton.style.cursor = 'pointer';
+            exportButton.style.borderRadius = '4px';
+            exportButton.textContent = 'Export to CSV';
+            exportButton.addEventListener('click', function() {
+                exportUnrecognizedShiftsToCSV();
+            });
+            
+            modalContent.appendChild(exportButton);
+            
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+        }
+        
+        // Функция для экспорта нераспознанных смен в CSV
+        function exportUnrecognizedShiftsToCSV() {
+            if (!window.unrecognizedShifts || window.unrecognizedShifts.length === 0) {
+                alert('No data to export!');
+                return;
+            }
+            
+            // Создаем заголовок CSV
+            let csvContent = 'Staff,Shift\n';
+            
+            // Добавляем данные
+            window.unrecognizedShifts.forEach(item => {
+                // Экранируем запятые и кавычки в именах
+                const staffName = item.staffName.includes(',') ? `"${item.staffName.replace(/"/g, '""')}"` : item.staffName;
+                const shift = item.shift.includes(',') ? `"${item.shift.replace(/"/g, '""')}"` : item.shift;
+                
+                csvContent += `${staffName},${shift}\n`;
+            });
+            
+            // Создаем Blob с данными CSV
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            
+            // Создаем ссылку для скачивания
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'unrecognized_shifts.csv');
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // Функция для проверки приблизительного совпадения цветов
+        function isSimilarColor(color1, color2) {
+            if (!color1 || !color2) return false;
+            
+            // Если точное совпадение
+            if (color1.toLowerCase() === color2.toLowerCase()) return true;
+            
+            // Проверяем приблизительное совпадение
+            try {
+                // Преобразуем цвета в RGB компоненты
+                const rgb1 = {
+                    r: parseInt(color1.substring(0, 2), 16),
+                    g: parseInt(color1.substring(2, 4), 16),
+                    b: parseInt(color1.substring(4, 6), 16)
+                };
+                
+                const rgb2 = {
+                    r: parseInt(color2.substring(0, 2), 16),
+                    g: parseInt(color2.substring(2, 4), 16),
+                    b: parseInt(color2.substring(4, 6), 16)
+                };
+                
+                // Вычисляем разницу между компонентами
+                const diff = {
+                    r: Math.abs(rgb1.r - rgb2.r),
+                    g: Math.abs(rgb1.g - rgb2.g),
+                    b: Math.abs(rgb1.b - rgb2.b)
+                };
+                
+                // Используем очень строгий порог для сравнения цветов
+                // Для точных цветов #93C47D, #4A86E8, #B7B7B7
+                const threshold = 3;
+                return diff.r <= threshold && diff.g <= threshold && diff.b <= threshold;
+            } catch (e) {
+                console.error("Ошибка при сравнении цветов:", e);
+                return false;
+            }
+        }
+        
+        // Функция для получения цвета ячейки для определенного дня
+        function getCellColorForDay(staffName, dayIndex, headerInfo) {
+            if (!window.lastLoadedData || !window.excelCellColors) return null;
+            
+            const data = window.lastLoadedData;
+            
+            // Находим строку с сотрудником
+            let staffRow = -1;
+            for (let i = 0; i < data.length; i++) {
+                if (!data[i] || !data[i][0] || typeof data[i][0] !== 'string') continue;
+                
+                const rowStaffName = data[i][0].trim();
+                if (rowStaffName === staffName || rowStaffName.includes(staffName) || staffName.includes(rowStaffName)) {
+                    staffRow = i;
+                    break;
+                }
+            }
+            
+            if (staffRow === -1) return null;
+            
+            // Получаем колонку для нужного дня
+            const dayColumn = headerInfo.dayColumns[dayIndex];
+            if (!dayColumn) return null;
+            
+            // Вычисляем адрес ячейки в формате Excel (например, A1, B2)
+            const colLetter = String.fromCharCode(65 + dayColumn); // A, B, C, ...
+            const rowNumber = staffRow + 1; // Excel начинает с 1
+            const cellAddress = `${colLetter}${rowNumber}`;
+            
+            // Получаем цвет из извлеченных цветов ячеек
+            if (window.excelCellColors[cellAddress]) {
+                return window.excelCellColors[cellAddress];
+            }
+            
+            return null;
         }
         
         // Function to populate location hours table
@@ -3256,154 +4794,6 @@
             }
         }
         
-        // Функция для проверки приблизительного совпадения цветов
-        function isSimilarColor(color1, color2) {
-            if (!color1 || !color2) return false;
-            
-            // Если точное совпадение
-            if (color1.toLowerCase() === color2.toLowerCase()) return true;
-            
-            // Проверяем приблизительное совпадение
-            try {
-                // Преобразуем цвета в RGB компоненты
-                const rgb1 = {
-                    r: parseInt(color1.substring(0, 2), 16),
-                    g: parseInt(color1.substring(2, 4), 16),
-                    b: parseInt(color1.substring(4, 6), 16)
-                };
-                
-                const rgb2 = {
-                    r: parseInt(color2.substring(0, 2), 16),
-                    g: parseInt(color2.substring(2, 4), 16),
-                    b: parseInt(color2.substring(4, 6), 16)
-                };
-                
-                // Вычисляем разницу между компонентами
-                const diff = {
-                    r: Math.abs(rgb1.r - rgb2.r),
-                    g: Math.abs(rgb1.g - rgb2.g),
-                    b: Math.abs(rgb1.b - rgb2.b)
-                };
-                
-                // Используем очень строгий порог для сравнения цветов
-                // Для точных цветов #93C47D, #4A86E8, #B7B7B7
-                const threshold = 3;
-                return diff.r <= threshold && diff.g <= threshold && diff.b <= threshold;
-            } catch (e) {
-                console.error("Ошибка при сравнении цветов:", e);
-                return false;
-            }
-        }
-        
-        // Функция для получения цвета ячейки для определенного дня
-        function getCellColorForDay(staffName, dayIndex, headerInfo) {
-            if (!window.lastLoadedData || !window.excelCellColors) return null;
-            
-            const data = window.lastLoadedData;
-            
-            // Находим строку с сотрудником
-            let staffRow = -1;
-            for (let i = 0; i < data.length; i++) {
-                if (!data[i] || !data[i][0] || typeof data[i][0] !== 'string') continue;
-                
-                const rowStaffName = data[i][0].trim();
-                if (rowStaffName === staffName || rowStaffName.includes(staffName) || staffName.includes(rowStaffName)) {
-                    staffRow = i;
-                    break;
-                }
-            }
-            
-            if (staffRow === -1) return null;
-            
-            // Получаем колонку для нужного дня
-            const dayColumn = headerInfo.dayColumns[dayIndex];
-            if (!dayColumn) return null;
-            
-            // Вычисляем адрес ячейки в формате Excel (например, A1, B2)
-            const colLetter = String.fromCharCode(65 + dayColumn); // A, B, C, ...
-            const rowNumber = staffRow + 1; // Excel начинает с 1
-            const cellAddress = `${colLetter}${rowNumber}`;
-            
-            // Получаем цвет из извлеченных цветов ячеек
-            if (window.excelCellColors[cellAddress]) {
-                return window.excelCellColors[cellAddress];
-            }
-            
-            return null;
-        }
-        
-        // Добавляем обработчик события загрузки страницы
-        document.addEventListener('DOMContentLoaded', function() {
-            // Добавляем обработчик события для input file
-            document.getElementById('fileInput').addEventListener('change', function(e) {
-                if (this.files.length > 0) {
-                    handleExcelFile(this.files[0]);
-                }
-            });
-        });
-        
-        // Функция для загрузки файла spa.xlsx по умолчанию (для Лары и Хуаниты)
-        function loadDefaultFile() {
-            try {
-                // Создаем объект XMLHttpRequest для загрузки файла
-                const xhr = new XMLHttpRequest();
-                xhr.open('GET', 'spa.xlsx', true);
-                xhr.responseType = 'arraybuffer';
-                
-                // Показываем индикатор загрузки
-                document.getElementById('loading').style.display = 'block';
-                document.getElementById('statusMessage').className = 'status';
-                document.getElementById('statusMessage').textContent = 'Loading default file...';
-                
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        // Файл успешно загружен
-                        const data = new Uint8Array(xhr.response);
-                        const workbook = XLSX.read(data, { type: 'array', cellStyles: true });
-                        
-                        // Получаем первый лист
-                        const firstSheetName = workbook.SheetNames[0];
-                        const worksheet = workbook.Sheets[firstSheetName];
-                        
-                        // Извлекаем цвета ячеек
-                        const cellColors = extractCellColors(worksheet);
-                        window.excelCellColors = cellColors;
-                        
-                        // Преобразуем в JSON
-                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: null, cellStyles: true });
-                        
-                        // Отображаем данные
-                        displayData(jsonData);
-                        
-                document.getElementById('statusMessage').className = 'status success';
-                        document.getElementById('statusMessage').textContent = 'Default file successfully loaded!';
-                    } else {
-                        // Ошибка загрузки файла
-                        console.error('Error loading file:', xhr.statusText);
-                document.getElementById('statusMessage').className = 'status error';
-                        document.getElementById('statusMessage').textContent = 'Error loading file: ' + xhr.statusText;
-                    }
-                    document.getElementById('loading').style.display = 'none';
-                };
-                
-                xhr.onerror = function() {
-                    // Сетевая ошибка
-                    console.error('Network error while loading file');
-                    document.getElementById('statusMessage').className = 'status error';
-                    document.getElementById('statusMessage').textContent = 'Network error while loading file';
-                    document.getElementById('loading').style.display = 'none';
-                };
-                
-                xhr.send();
-            } catch (error) {
-                // Обработка других ошибок
-                console.error('Error processing default file:', error);
-                document.getElementById('statusMessage').className = 'status error';
-                document.getElementById('statusMessage').textContent = 'Error: ' + error.message;
-                document.getElementById('loading').style.display = 'none';
-            }
-        }
-
         // Добавляем функцию для форматирования рабочих часов
         function formatWorkingHours(hours) {
             if (!hours || hours === "") return "";
@@ -3505,6 +4895,68 @@
                 openLocation(null, locationName);
             });
         });
+        
+        // Функция для загрузки файла spa.xlsx по умолчанию (для Лары и Хуаниты)
+        function loadDefaultFile() {
+            try {
+                // Создаем объект XMLHttpRequest для загрузки файла
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', 'spa.xlsx', true);
+                xhr.responseType = 'arraybuffer';
+                
+                // Показываем индикатор загрузки
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('statusMessage').className = 'status';
+                document.getElementById('statusMessage').textContent = 'Loading default file...';
+                
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        // Файл успешно загружен
+                        const data = new Uint8Array(xhr.response);
+                        const workbook = XLSX.read(data, { type: 'array', cellStyles: true });
+                        
+                        // Получаем первый лист
+                        const firstSheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[firstSheetName];
+                        
+                        // Извлекаем цвета ячеек
+                        const cellColors = extractCellColors(worksheet);
+                        window.excelCellColors = cellColors;
+                        
+                        // Преобразуем в JSON
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: null, cellStyles: true });
+                        
+                        // Отображаем данные
+                        displayData(jsonData);
+                        
+                        document.getElementById('statusMessage').className = 'status success';
+                        document.getElementById('statusMessage').textContent = 'Default file successfully loaded!';
+                    } else {
+                        // Ошибка загрузки файла
+                        console.error('Error loading file:', xhr.statusText);
+                        document.getElementById('statusMessage').className = 'status error';
+                        document.getElementById('statusMessage').textContent = 'Error loading file: ' + xhr.statusText;
+                    }
+                    document.getElementById('loading').style.display = 'none';
+                };
+                
+                xhr.onerror = function() {
+                    // Сетевая ошибка
+                    console.error('Network error while loading file');
+                    document.getElementById('statusMessage').className = 'status error';
+                    document.getElementById('statusMessage').textContent = 'Network error while loading file';
+                    document.getElementById('loading').style.display = 'none';
+                };
+                
+                xhr.send();
+            } catch (error) {
+                // Обработка других ошибок
+                console.error('Error processing default file:', error);
+                document.getElementById('statusMessage').className = 'status error';
+                document.getElementById('statusMessage').textContent = 'Error: ' + error.message;
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
     </script>
     
     <script>
